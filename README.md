@@ -1,73 +1,70 @@
-# React + TypeScript + Vite
+# Atlas Front
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend da aplicação Atlas, desenvolvido com React, TypeScript e Vite.
 
-Currently, two official plugins are available:
+## Tecnologias
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **React 19** com StrictMode
+- **TypeScript**
+- **Vite** (bundler)
+- **Tailwind CSS** + **shadcn/ui** (componentes)
+- **React Router DOM** (rotas)
+- **TanStack Table** (tabelas)
+- **React Hook Form** + **Zod** (formulários e validação)
+- **Zustand** (estado global)
+- **Axios** (requisições HTTP)
+- **i18next** (internacionalização)
 
-## React Compiler
+## Pré-requisitos
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Node.js 18+
+- npm
 
-## Expanding the ESLint configuration
+## Instalação
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Scripts
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Comando           | Descrição                            |
+| ----------------- | ------------------------------------ |
+| `npm run dev`     | Inicia o servidor de desenvolvimento |
+| `npm run build`   | Gera o build de produção             |
+| `npm run preview` | Visualiza o build localmente         |
+| `npm run lint`    | Executa o ESLint                     |
+| `npm run format`  | Formata o código com Prettier        |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Estrutura do projeto
+
 ```
+src/
+├── core/
+│   ├── http/        # Configuração do Axios e helpers de requisição
+│   ├── i18n/        # Configuração do i18next
+│   ├── router/      # Definição de rotas
+│   └── store/       # Stores globais (tema, idioma)
+├── modules/
+│   ├── companies/
+│   ├── dashboard/
+│   ├── indication/  # Listagem e criação de indicações
+│   ├── segmentation/
+│   └── tourism/
+└── shared/
+    ├── components/
+    │   ├── base/    # Componentes reutilizáveis (ListingTable, FormDialog, ConfirmDialog)
+    │   ├── layouts/ # Layout principal, header e sidebar
+    │   └── ui/      # Componentes de UI (shadcn/ui)
+    ├── helpers/
+    └── hooks/
+```
+
+## Qualidade de código
+
+O projeto usa **Husky** + **lint-staged** para garantir qualidade antes de cada commit:
+
+- Arquivos `.ts/.tsx`: ESLint (fix) + Prettier
+- Demais arquivos: Prettier
+
+Os hooks são instalados automaticamente via `npm install` (`prepare: husky`).
