@@ -1,29 +1,29 @@
+import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table'
+import { useTranslation } from 'react-i18next'
+import { Button } from '@/shared/components/ui/button'
+import { Input } from '@/shared/components/ui/input'
 import {
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-  type ColumnDef
-} from '@tanstack/react-table';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/shared/components/ui/button';
-import { Input } from '@/shared/components/ui/input';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
-} from '@/shared/components/ui/table';
-import type { PaginationState } from '@/shared/hooks/useListing';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/shared/components/ui/table'
+import type { PaginationState } from '@/shared/hooks/useListing'
 
 interface ListingTableProps<TData> {
-  columns: ColumnDef<TData>[];
-  data: TData[];
-  isLoading?: boolean;
-  enableSearch?: boolean;
-  enablePagination?: boolean;
-  pagination?: PaginationState;
-  searchValue?: string;
-  onSearchChange?: (value: string) => void;
-  onPageChange?: (page: number) => void;
-  toolbarActions?: React.ReactNode;
-  renderCell?: (columnId: string, row: TData) => React.ReactNode;
+  columns: ColumnDef<TData>[]
+  data: TData[]
+  isLoading?: boolean
+  enableSearch?: boolean
+  enablePagination?: boolean
+  pagination?: PaginationState
+  searchValue?: string
+  onSearchChange?: (value: string) => void
+  onPageChange?: (page: number) => void
+  toolbarActions?: React.ReactNode
+  renderCell?: (columnId: string, row: TData) => React.ReactNode
 }
 
 export function ListingTable<TData>({
@@ -37,16 +37,17 @@ export function ListingTable<TData>({
   onSearchChange,
   onPageChange,
   toolbarActions,
-  renderCell
+  renderCell,
 }: ListingTableProps<TData>) {
-  const { t } = useTranslation();
+  const { t } = useTranslation()
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    manualPagination: true
-  });
+    manualPagination: true,
+  })
 
   return (
     <div className="space-y-4">
@@ -57,7 +58,7 @@ export function ListingTable<TData>({
             placeholder={t('common.searchPlaceholder')}
             className="max-w-sm"
             disabled={isLoading}
-            onChange={e => onSearchChange?.(e.target.value)}
+            onChange={(e) => onSearchChange?.(e.target.value)}
           />
           {toolbarActions && <div>{toolbarActions}</div>}
         </div>
@@ -74,9 +75,9 @@ export function ListingTable<TData>({
 
         <Table>
           <TableHeader className="bg-muted/50">
-            {table.getHeaderGroups().map(headerGroup => (
+            {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
+                {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
                     {!header.isPlaceholder &&
                       flexRender(header.column.columnDef.header, header.getContext())}
@@ -88,9 +89,9 @@ export function ListingTable<TData>({
 
           <TableBody>
             {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map(row => (
+              table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
-                  {row.getVisibleCells().map(cell => (
+                  {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {renderCell?.(cell.column.id, row.original) ??
                         flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -100,7 +101,10 @@ export function ListingTable<TData>({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-32 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-32 text-center text-muted-foreground"
+                >
                   {isLoading ? t('common.textLoaderRequest') : t('common.emptyListing')}
                 </TableCell>
               </TableRow>
@@ -114,7 +118,7 @@ export function ListingTable<TData>({
           <div className="text-sm text-muted-foreground">
             {t('common.textPagination', {
               currentPage: pagination.currentPage,
-              totalPages: pagination.totalPages
+              totalPages: pagination.totalPages,
             })}
           </div>
           <div className="flex items-center space-x-2">
@@ -138,5 +142,5 @@ export function ListingTable<TData>({
         </div>
       )}
     </div>
-  );
+  )
 }

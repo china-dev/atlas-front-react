@@ -1,6 +1,6 @@
-import { Outlet } from 'react-router-dom';
-import { SideBar } from './SideBar';
-import { AppHeader } from './AppHeader';
+import { Outlet } from 'react-router-dom'
+import { SideBar } from './SideBar'
+import { AppHeader } from './AppHeader'
 
 export default function MainLayout() {
   return (
@@ -13,5 +13,5 @@ export default function MainLayout() {
         </main>
       </div>
     </div>
-  );
+  )
 }

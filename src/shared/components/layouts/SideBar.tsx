@@ -1,22 +1,22 @@
-import { NavLink } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { CircleHelp, LayoutDashboard, Home, GlobeIcon, Store, Backpack } from 'lucide-react';
-import logoLight from '@/assets/img/geral/logo.png';
-import logoDark from '@/assets/img/geral/logo-dark.png';
-import { useThemeStore } from '@/core/store/theme.store';
+import { NavLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { CircleHelp, LayoutDashboard, Home, GlobeIcon, Store, Backpack } from 'lucide-react'
+import logoLight from '@/assets/img/geral/logo.png'
+import logoDark from '@/assets/img/geral/logo-dark.png'
+import { useThemeStore } from '@/core/store/theme.store'
 
 const menuItems = (t: (key: string) => string) => [
   { name: t('menu.dashboard'), icon: LayoutDashboard, path: '/' },
   { name: t('menu.companies'), icon: Home, path: '/empresas' },
   { name: t('menu.indication'), icon: GlobeIcon, path: '/indicacao-geografica' },
   { name: t('menu.segmentation'), icon: Store, path: '/segmentacao-de-loja' },
-  { name: t('menu.tourism'), icon: Backpack, path: '/turismo' }
-];
+  { name: t('menu.tourism'), icon: Backpack, path: '/turismo' },
+]
 
 export function SideBar() {
-  const { t } = useTranslation();
-  const { theme } = useThemeStore();
-  const items = menuItems(t);
+  const { t } = useTranslation()
+  const { theme } = useThemeStore()
+  const items = menuItems(t)
 
   return (
     <aside className="w-64 bg-card border-border flex flex-col border-r shadow-sm">
@@ -29,7 +29,7 @@ export function SideBar() {
       </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto text-xs">
-        {items.map(item => (
+        {items.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
@@ -39,7 +39,7 @@ export function SideBar() {
                 'flex items-center justify-between py-4 border-b transition-colors text-base font-medium',
                 isActive
                   ? 'text-primary border-primary'
-                  : 'text-foreground border-border hover:text-primary'
+                  : 'text-foreground border-border hover:text-primary',
               ].join(' ')
             }
           >
@@ -61,5 +61,5 @@ export function SideBar() {
         </a>
       </div>
     </aside>
-  );
+  )
 }

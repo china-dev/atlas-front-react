@@ -1,28 +1,33 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslation } from 'react-i18next';
-import { createIndicationSchema, type CreateIndicationSchemaValues } from '../schemas/indication.schema';
-import { Input } from '@/shared/components/ui/input';
-import { Label } from '@/shared/components/ui/label';
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useTranslation } from 'react-i18next'
+import {
+  createIndicationSchema,
+  type CreateIndicationSchemaValues,
+} from '../schemas/indication.schema'
+import { Input } from '@/shared/components/ui/input'
+import { Label } from '@/shared/components/ui/label'
 
 interface IndicationCreateFormProps {
-  id: string;
-  isSubmitting: boolean;
-  onSubmit: (values: CreateIndicationSchemaValues) => void;
+  id: string
+  isSubmitting: boolean
+  onSubmit: (values: CreateIndicationSchemaValues) => void
 }
 
 export function IndicationCreateForm({ id, isSubmitting, onSubmit }: IndicationCreateFormProps) {
-  const { t } = useTranslation();
-  const { register, handleSubmit, formState: { errors } } = useForm<CreateIndicationSchemaValues>({
-    resolver: zodResolver(createIndicationSchema)
-  });
+  const { t } = useTranslation()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<CreateIndicationSchemaValues>({
+    resolver: zodResolver(createIndicationSchema),
+  })
 
   return (
     <form id={id} className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
       <div className="space-y-2">
-        <Label htmlFor="indication_name">
-          {t('indicationListing.create.form.name.label')}
-        </Label>
+        <Label htmlFor="indication_name">{t('indicationListing.create.form.name.label')}</Label>
         <Input
           id="indication_name"
           placeholder={t('indicationListing.create.form.name.placeholder')}
@@ -49,5 +54,5 @@ export function IndicationCreateForm({ id, isSubmitting, onSubmit }: IndicationC
         )}
       </div>
     </form>
-  );
+  )
 }

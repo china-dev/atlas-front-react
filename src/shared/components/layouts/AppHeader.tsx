@@ -1,33 +1,33 @@
-import { useMatches } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { Sun, Moon } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar';
-import { useThemeStore } from '@/core/store/theme.store';
-import { useLanguageStore } from '@/core/store/language.store';
-import brFlag from '@/assets/img/geral/bra.png';
-import usaFlag from '@/assets/img/geral/eua.png';
-import esFlag from '@/assets/img/geral/esp.png';
+import { useMatches } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { Sun, Moon } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
+import { useThemeStore } from '@/core/store/theme.store'
+import { useLanguageStore } from '@/core/store/language.store'
+import brFlag from '@/assets/img/geral/bra.png'
+import usaFlag from '@/assets/img/geral/eua.png'
+import esFlag from '@/assets/img/geral/esp.png'
 
-type RouteHandle = { breadcrumb?: string };
+type RouteHandle = { breadcrumb?: string }
 
 export function AppHeader() {
-  const { t } = useTranslation();
-  const matches = useMatches();
-  const { theme, toggleTheme } = useThemeStore();
-  const { currentLanguage, setLanguage } = useLanguageStore();
+  const { t } = useTranslation()
+  const matches = useMatches()
+  const { theme, toggleTheme } = useThemeStore()
+  const { currentLanguage, setLanguage } = useLanguageStore()
 
   const breadcrumbs = matches
-    .filter(m => (m.handle as RouteHandle)?.breadcrumb)
-    .map(m => ({
+    .filter((m) => (m.handle as RouteHandle)?.breadcrumb)
+    .map((m) => ({
       path: m.pathname,
-      label: t((m.handle as RouteHandle).breadcrumb!)
-    }));
+      label: t((m.handle as RouteHandle).breadcrumb!),
+    }))
 
   const languages: { code: 'pt-BR' | 'en-US' | 'es-ES'; flag: string; label: string }[] = [
     { code: 'pt-BR', flag: brFlag, label: 'Português' },
     { code: 'en-US', flag: usaFlag, label: 'English' },
-    { code: 'es-ES', flag: esFlag, label: 'Español' }
-  ];
+    { code: 'es-ES', flag: esFlag, label: 'Español' },
+  ]
 
   return (
     <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 py-2 shadow-sm">
@@ -58,14 +58,14 @@ export function AppHeader() {
         </button>
 
         <div className="flex items-center gap-3 mr-4 border-r border-border pr-4">
-          {languages.map(lang => (
+          {languages.map((lang) => (
             <button
               key={lang.code}
               className={[
                 'transition-all hover:opacity-100 rounded-sm overflow-hidden',
                 currentLanguage === lang.code
                   ? 'opacity-100 ring-2 ring-primary ring-offset-1'
-                  : 'opacity-40 grayscale-[50%]'
+                  : 'opacity-40 grayscale-[50%]',
               ].join(' ')}
               title={lang.label}
               onClick={() => setLanguage(lang.code)}
@@ -83,5 +83,5 @@ export function AppHeader() {
         </Avatar>
       </div>
     </header>
-  );
+  )
 }

@@ -1,20 +1,25 @@
-import { Loader2 } from 'lucide-react';
-import { Button } from '@/shared/components/ui/button';
+import { Loader2 } from 'lucide-react'
+import { Button } from '@/shared/components/ui/button'
 import {
-  AlertDialog, AlertDialogContent, AlertDialogDescription,
-  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogCancel
-} from '@/shared/components/ui/alert-dialog';
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogCancel,
+} from '@/shared/components/ui/alert-dialog'
 
 interface ConfirmDialogProps {
-  open: boolean;
-  onOpenChange: (value: boolean) => void;
-  title?: string;
-  description?: string;
-  confirmText?: string;
-  cancelText?: string;
-  confirmVariant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
-  isLoading?: boolean;
-  onConfirm: () => void;
+  open: boolean
+  onOpenChange: (value: boolean) => void
+  title?: string
+  description?: string
+  confirmText?: string
+  cancelText?: string
+  confirmVariant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+  isLoading?: boolean
+  onConfirm: () => void
 }
 
 export function ConfirmDialog({
@@ -26,12 +31,12 @@ export function ConfirmDialog({
   cancelText = 'Cancelar',
   confirmVariant = 'default',
   isLoading = false,
-  onConfirm
+  onConfirm,
 }: ConfirmDialogProps) {
   const handleOpenChange = (value: boolean) => {
-    if (isLoading) return;
-    onOpenChange(value);
-  };
+    if (isLoading) return
+    onOpenChange(value)
+  }
 
   return (
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
@@ -49,5 +54,5 @@ export function ConfirmDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  );
+  )
 }

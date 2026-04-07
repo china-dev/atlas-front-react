@@ -1,19 +1,24 @@
-import { Loader2 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/shared/components/ui/button';
+import { Loader2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { Button } from '@/shared/components/ui/button'
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter,
-  DialogHeader, DialogTitle, DialogClose
-} from '@/shared/components/ui/dialog';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from '@/shared/components/ui/dialog'
 
 interface FormDialogProps {
-  open: boolean;
-  onOpenChange: (value: boolean) => void;
-  isLoading: boolean;
-  title: string;
-  description?: string;
-  formId: string;
-  children: React.ReactNode;
+  open: boolean
+  onOpenChange: (value: boolean) => void
+  isLoading: boolean
+  title: string
+  description?: string
+  formId: string
+  children: React.ReactNode
 }
 
 export function FormDialog({
@@ -23,14 +28,14 @@ export function FormDialog({
   title,
   description,
   formId,
-  children
+  children,
 }: FormDialogProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation()
 
   const handleOpenChange = (value: boolean) => {
-    if (isLoading) return;
-    onOpenChange(value);
-  };
+    if (isLoading) return
+    onOpenChange(value)
+  }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -55,5 +60,5 @@ export function FormDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

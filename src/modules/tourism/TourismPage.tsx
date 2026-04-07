@@ -4,5 +4,5 @@ export default function TourismPage() {
       <h2 className="text-3xl font-bold tracking-tight text-foreground">Turismo</h2>
       <p className="text-muted-foreground">Em construção.</p>
     </div>
-  );
+  )
 }

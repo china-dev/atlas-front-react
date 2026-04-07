@@ -1,16 +1,16 @@
-import { useTranslation } from 'react-i18next';
-import { Trash2, FileSearch, PlusCircle } from 'lucide-react';
-import { useIndications } from './hooks/useIndication';
-import { useIndicationCreate } from './hooks/useIndicationCreate';
-import { ListingTable } from '@/shared/components/base/ListingTable';
-import { ConfirmDialog } from '@/shared/components/base/ConfirmDialog';
-import { FormDialog } from '@/shared/components/base/FormDialog';
-import { IndicationCreateForm } from './components/IndicationCreateForm';
-import { Button } from '@/shared/components/ui/button';
-import type { IndicationRow } from './types/indication.type';
+import { useTranslation } from 'react-i18next'
+import { Trash2, FileSearch, PlusCircle } from 'lucide-react'
+import { useIndications } from './hooks/useIndication'
+import { useIndicationCreate } from './hooks/useIndicationCreate'
+import { ListingTable } from '@/shared/components/base/ListingTable'
+import { ConfirmDialog } from '@/shared/components/base/ConfirmDialog'
+import { FormDialog } from '@/shared/components/base/FormDialog'
+import { IndicationCreateForm } from './components/IndicationCreateForm'
+import { Button } from '@/shared/components/ui/button'
+import type { IndicationRow } from './types/indication.type'
 
 export default function IndicationListingPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation()
 
   const {
     columns,
@@ -25,11 +25,11 @@ export default function IndicationListingPage() {
     setIsConfirmDialogOpen,
     isDeleting,
     promptDelete,
-    executeDelete
-  } = useIndications();
+    executeDelete,
+  } = useIndications()
 
   const { isFormOpened, isSubmitting, openForm, closeForm, handleSubmit } =
-    useIndicationCreate(reload);
+    useIndicationCreate(reload)
 
   const renderCell = (columnId: string, row: IndicationRow) => {
     if (columnId === 'name') {
@@ -45,14 +45,14 @@ export default function IndicationListingPage() {
             <span className="text-xs text-muted-foreground">{row.registrationNumber}</span>
           </div>
         </div>
-      );
+      )
     }
     if (columnId === 'address') {
       return (
         <span className="text-foreground">
           {row.address.city} - {row.address.state}
         </span>
-      );
+      )
     }
     if (columnId === 'actions') {
       return (
@@ -70,10 +70,10 @@ export default function IndicationListingPage() {
             <FileSearch className="w-4 h-4" />
           </Button>
         </div>
-      );
+      )
     }
-    return null;
-  };
+    return null
+  }
 
   return (
     <div className="space-y-4">
@@ -123,5 +123,5 @@ export default function IndicationListingPage() {
         />
       </FormDialog>
     </div>
-  );
+  )
 }

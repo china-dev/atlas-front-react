@@ -1,10 +1,15 @@
-import { useToast } from './use-toast';
+import { useToast } from './use-toast'
 import {
-  Toast, ToastClose, ToastDescription, ToastProvider, ToastTitle, ToastViewport
-} from './toast';
+  Toast,
+  ToastClose,
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+} from './toast'
 
 export function Toaster() {
-  const { toasts } = useToast();
+  const { toasts } = useToast()
   return (
     <ToastProvider>
       {toasts.map(({ id, title, description, ...props }) => (
@@ -18,5 +23,5 @@ export function Toaster() {
       ))}
       <ToastViewport />
     </ToastProvider>
-  );
+  )
 }

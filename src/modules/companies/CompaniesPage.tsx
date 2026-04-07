@@ -4,5 +4,5 @@ export default function CompaniesPage() {
       <h2 className="text-3xl font-bold tracking-tight text-foreground">Empresas</h2>
       <p className="text-muted-foreground">Em construção.</p>
     </div>
-  );
+  )
 }

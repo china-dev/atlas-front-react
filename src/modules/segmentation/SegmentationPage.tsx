@@ -4,5 +4,5 @@ export default function SegmentationPage() {
       <h2 className="text-3xl font-bold tracking-tight text-foreground">Segmentação de Loja</h2>
       <p className="text-muted-foreground">Em construção.</p>
     </div>
-  );
+  )
 }
