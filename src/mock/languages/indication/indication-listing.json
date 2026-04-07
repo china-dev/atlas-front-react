@@ -1,0 +1,98 @@
+{
+  "pt-BR": {
+    "indicationListing": {
+      "table": {
+        "columns": {
+          "name": "Nome",
+          "location": "Localidade",
+          "organization": "Orgão",
+          "concessionDate": "Data de concessão",
+          "createdAt": "Data de criação",
+          "actions": "Ações"
+        }
+      },
+      "create": {
+        "title": "Indicações Geográficas",
+        "description": "Crie uma nova indicação geográfica",
+        "form": {
+          "name": {
+            "label": "Nome",
+            "placeholder": "Digite o nome da indicação"
+          },
+          "organization": {
+            "label": "Orgão",
+            "placeholder": "Digite o nome do órgão"
+          },
+          "errors": {
+            "name": "O nome deve ter no mínimo 3 caracteres.",
+            "organization": "A organização deve ter no mínimo 2 caracteres."
+          }
+        }
+      }
+    }
+  },
+  "en-US": {
+    "indicationListing": {
+      "table": {
+        "columns": {
+          "name": "Name",
+          "location": "Location",
+          "organization": "Organization",
+          "concessionDate": "Concession date",
+          "createdAt": "Creation date",
+          "actions": "Actions"
+        }
+      },
+      "create": {
+        "title": "Indication",
+        "description": "Create a new indication",
+        "form": {
+          "name": {
+            "label": "Name",
+            "placeholder": "Enter the name of the indication"
+          },
+          "organization": {
+            "label": "Organization",
+            "placeholder": "Enter the name of the organization"
+          },
+          "errors": {
+            "name": "The name must have at least 3 characters.",
+            "organization": "The organization must have at least 2 characters."
+          }
+        }
+      }
+    }
+  },
+  "es-ES": {
+    "indicationListing": {
+      "table": {
+        "columns": {
+          "name": "Nombre",
+          "location": "Localidad",
+          "organization": "Órgano",
+          "concessionDate": "Fecha de concesión",
+          "createdAt": "Fecha de creación",
+          "actions": "Acciones"
+        }
+      },
+      "create": {
+        "title": "Indicaciones Geográficas",
+        "description": "Crea una nueva indicación geográfica",
+        "form": {
+          "name": {
+            "label": "Nombre",
+            "placeholder": "Ingrese el nombre de la indicación"
+          },
+          "organization": {
+            "label": "Órgano",
+            "placeholder": "Ingrese el nombre del organización"
+          },
+          "errors": {
+            "name": "El nombre debe tener al menos 3 caracteres.",
+            "organization": "La organización debe tener al menos 2"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "pt-BR": {
+    "common": {
+      "error": "Erro!",
+      "success": "Sucesso!",
+      "updateMessage": "Dados atualizados com sucesso!",
+      "errorMessage": "Erro ao atualizar dados!",
+      "delete": {
+        "title": "Excluir",
+        "message": "Esta ação removerá o registro permanentemente do sistema. Você não poderá desfazer isso.",
+        "confirm": "Sim, excluir",
+        "cancel": "Cancelar"
+      },
+      "searchPlaceholder": "Buscar...",
+      "textLoaderRequest": "Buscando registros...",
+      "emptyListing": "Nenhum registro encontrado.",
+      "next": "Próximo",
+      "previous": "Anterior",
+      "loading": "Carregando...",
+      "textPagination": "Página {currentPage} de {totalPages}",
+      "newRegister": "Novo Registro",
+      "save": "Salvar",
+      "cancel": "Cancelar",
+      "required": "Campo obrigatório"
+    }
+  },
+  "en-US": {
+    "common": {
+      "error": "Error!",
+      "success": "Success!",
+      "updateMessage": "Data updated successfully!",
+      "errorMessage": "Error updating data!",
+      "delete": {
+        "title": "Delete",
+        "message": "This action will permanently remove the record from the system. You cannot undo this.",
+        "confirm": "Yes, delete",
+        "cancel": "Cancel"
+      },
+      "searchPlaceholder": "Search...",
+      "textLoaderRequest": "Fetching records...",
+      "emptyListing": "No records found.",
+      "next": "Next",
+      "previous": "Previous",
+      "loading": "Loading...",
+      "textPagination": "Page {currentPage} of {totalPages}",
+      "newRegister": "New Register",
+      "save": "Save",
+      "cancel": "Cancel",
+      "required": "Required field"
+    }
+  },
+  "es-ES": {
+    "common": {
+      "error": "¡Error!",
+      "success": "¡Éxito!",
+      "updateMessage": "¡Datos actualizados con éxito!",
+      "errorMessage": "¡Error al actualizar los datos!",
+      "delete": {
+        "title": "Eliminar",
+        "message": "Esta acción eliminará el registro permanentemente del sistema. No podrá deshacer esto.",
+        "confirm": "Sí, eliminar",
+        "cancel": "Cancelar"
+      },
+      "searchPlaceholder": "Buscar...",
+      "textLoaderRequest": "Buscando registros...",
+      "emptyListing": "No se encontraron registros.",
+      "next": "Siguiente",
+      "previous": "Anterior",
+      "loading": "Cargando...",
+      "textPagination": "Página {currentPage} de {totalPages}",
+      "newRegister": "Nuevo Registro",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "required": "Campo requerido"
+    }
+  }
+}
