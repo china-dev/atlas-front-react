@@ -1,9 +1,10 @@
 import { httpRequest } from '@/core/http/request.helper'
-import type { FetchResponse } from '@/shared/hooks/useListing'
+import type { FetchResponse, ListingFilter } from '@/shared/hooks/useListing'
 import type { IndicationRow } from '../types/indication.type'
 
 interface ApiIndication {
   id: number
+  ip: string
   name: string
   city_id: number
   organization_id: number
@@ -32,13 +33,9 @@ function formatDate(isoString: string): string {
 }
 
 export async function fetchIndications(
-  filterString: string
+  filter: ListingFilter
 ): Promise<FetchResponse<IndicationRow>> {
-  const { search, page, limit } = JSON.parse(filterString) as {
-    search?: string
-    page?: number
-    limit?: number
-  }
+  const { search, page, limit } = filter
 
   const response = await httpRequest<ApiIndicationListResponse>(
     'GET',
@@ -49,13 +46,12 @@ export async function fetchIndications(
 
   const rows: IndicationRow[] = response.data.map((item) => ({
     id: item.id,
+    ip: item.ip,
     name: item.name,
-    img: '',
-    registrationNumber: '',
-    organization: '',
-    address: { city: '', state: '' },
-    createdAt: formatDate(item.created_at),
+    cityId: item.city_id,
+    organizationId: item.organization_id,
     concessionDate: item.grant_date,
+    createdAt: formatDate(item.created_at),
   }))
 
   return {
@@ -71,4 +67,13 @@ export async function fetchIndications(
 
 export async function deleteIndication(id: number): Promise<void> {
   await httpRequest('DELETE', '/geographical-indications/' + id)
+}
+
+export interface CreateIndicationPayload {
+  indication_name: string
+  organization_name: string
+}
+
+export async function createIndication(payload: CreateIndicationPayload): Promise<void> {
+  await httpRequest('POST', '/geographical-indications', payload)
 }

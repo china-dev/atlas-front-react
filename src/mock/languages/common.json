@@ -17,11 +17,16 @@
       "next": "Próximo",
       "previous": "Anterior",
       "loading": "Carregando...",
-      "textPagination": "Página {currentPage} de {totalPages}",
+      "textPagination": "Página {{currentPage}} de {{totalPages}}",
       "newRegister": "Novo Registro",
       "save": "Salvar",
       "cancel": "Cancelar",
-      "required": "Campo obrigatório"
+      "required": "Campo obrigatório",
+      "confirm": {
+        "title": "Você tem certeza?",
+        "description": "Esta ação não pode ser desfeita.",
+        "confirmText": "Confirmar"
+      }
     }
   },
   "en-US": {
@@ -42,11 +47,16 @@
       "next": "Next",
       "previous": "Previous",
       "loading": "Loading...",
-      "textPagination": "Page {currentPage} of {totalPages}",
+      "textPagination": "Page {{currentPage}} of {{totalPages}}",
       "newRegister": "New Register",
       "save": "Save",
       "cancel": "Cancel",
-      "required": "Required field"
+      "required": "Required field",
+      "confirm": {
+        "title": "Are you sure?",
+        "description": "This action cannot be undone.",
+        "confirmText": "Confirm"
+      }
     }
   },
   "es-ES": {
@@ -67,11 +77,16 @@
       "next": "Siguiente",
       "previous": "Anterior",
       "loading": "Cargando...",
-      "textPagination": "Página {currentPage} de {totalPages}",
+      "textPagination": "Página {{currentPage}} de {{totalPages}}",
       "newRegister": "Nuevo Registro",
       "save": "Guardar",
       "cancel": "Cancelar",
-      "required": "Campo requerido"
+      "required": "Campo requerido",
+      "confirm": {
+        "title": "¿Está seguro?",
+        "description": "Esta acción no se puede deshacer.",
+        "confirmText": "Confirmar"
+      }
     }
   }
 }

@@ -1,5 +1,7 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { ProtectedRoute } from '@/shared/components/router/ProtectedRoute'
 import MainLayout from '@/shared/components/layouts/MainLayout'
+import LoginPage from '@/modules/auth/LoginPage'
 import DashboardPage from '@/modules/dashboard/DashboardPage'
 import IndicationListingPage from '@/modules/indication/IndicationListingPage'
 import CompaniesPage from '@/modules/companies/CompaniesPage'
@@ -8,22 +10,39 @@ import TourismPage from '@/modules/tourism/TourismPage'
 
 export const router = createBrowserRouter([
   {
-    path: '/',
-    element: <MainLayout />,
+    element: <ProtectedRoute />,
     children: [
-      { index: true, handle: { breadcrumb: 'menu.dashboard' }, element: <DashboardPage /> },
       {
-        path: 'indicacao-geografica',
-        handle: { breadcrumb: 'menu.indication' },
-        element: <IndicationListingPage />,
+        path: '/',
+        element: <MainLayout />,
+        children: [
+          { index: true, handle: { breadcrumb: 'menu.dashboard' }, element: <DashboardPage /> },
+          {
+            path: 'indicacao-geografica',
+            handle: { breadcrumb: 'menu.indication' },
+            element: <IndicationListingPage />,
+          },
+          {
+            path: 'empresas',
+            handle: { breadcrumb: 'menu.companies' },
+            element: <CompaniesPage />,
+          },
+          {
+            path: 'segmentacao-de-loja',
+            handle: { breadcrumb: 'menu.segmentation' },
+            element: <SegmentationPage />,
+          },
+          { path: 'turismo', handle: { breadcrumb: 'menu.tourism' }, element: <TourismPage /> },
+        ],
       },
-      { path: 'empresas', handle: { breadcrumb: 'menu.companies' }, element: <CompaniesPage /> },
-      {
-        path: 'segmentacao-de-loja',
-        handle: { breadcrumb: 'menu.segmentation' },
-        element: <SegmentationPage />,
-      },
-      { path: 'turismo', handle: { breadcrumb: 'menu.tourism' }, element: <TourismPage /> },
     ],
+  },
+  {
+    path: '/login',
+    element: <LoginPage />,
+  },
+  {
+    path: '*',
+    element: <Navigate to="/" replace />,
   },
 ])

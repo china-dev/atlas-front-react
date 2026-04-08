@@ -51,7 +51,7 @@ export function SideBar() {
 
       <div className="p-4">
         <a
-          href="www.documentacaoatlas.com.br"
+          href="https://www.documentacaoatlas.com.br"
           target="_blank"
           rel="noreferrer"
           className="p-2 bg-primary text-xs font-semibold text-primary-foreground gap-2 flex items-center justify-center"

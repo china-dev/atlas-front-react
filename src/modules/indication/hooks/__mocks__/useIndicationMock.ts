@@ -1,5 +1,5 @@
 import type { IndicationApiResponse, IndicationRow } from '../../types/indication.type'
-import type { FetchResponse } from '@/shared/hooks/useListing'
+import type { FetchResponse, ListingFilter } from '@/shared/hooks/useListing'
 
 export const baseMockApi: IndicationApiResponse = {
   id: 0,
@@ -35,11 +35,10 @@ export let allIndicationsMock: IndicationApiResponse[] = Array.from({ length: 35
 )
 
 export const fetchIndicationsApiMock = async (
-  filterString: string
+  filter: ListingFilter
 ): Promise<FetchResponse<IndicationRow>> => {
   await new Promise((resolve) => setTimeout(resolve, 800))
 
-  const filter = filterString ? JSON.parse(filterString) : { page: 1, limit: 10, search: '' }
   const page: number = filter.page || 1
   const limit: number = filter.limit || 10
   const search: string = (filter.search ?? '').toLowerCase()
@@ -54,13 +53,12 @@ export const fetchIndicationsApiMock = async (
 
   const rows: IndicationRow[] = paged.map((item) => ({
     id: item.id,
+    ip: item.ip ?? '',
     name: item.indication_name,
-    img: item.image_url,
-    registrationNumber: item.registration_code,
-    organization: item.organization_name,
-    address: { city: item.location.city, state: item.location.state },
-    createdAt: new Date(item.created_at).toLocaleString('pt-BR'),
+    cityId: 0,
+    organizationId: 0,
     concessionDate: new Date(item.concession_date).toLocaleDateString('pt-BR'),
+    createdAt: new Date(item.created_at).toLocaleString('pt-BR'),
   }))
 
   return {

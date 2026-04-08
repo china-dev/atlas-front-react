@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { CreateIndicationSchemaValues } from '../schemas/indication.schema'
 import { toast } from '@/shared/components/ui/toast/use-toast'
+import { createIndication } from '../services/indication.service'
 
 export function useIndicationCreate(onSuccess?: () => void) {
   const { t } = useTranslation()
@@ -15,9 +16,7 @@ export function useIndicationCreate(onSuccess?: () => void) {
     async (values: CreateIndicationSchemaValues) => {
       setIsSubmitting(true)
       try {
-        // Simulate API call with mock delay
-        await new Promise((resolve) => setTimeout(resolve, 800))
-        console.log('Creating indication:', values)
+        await createIndication(values)
         toast({
           title: t('common.success'),
           description: t('common.updateMessage'),
@@ -25,8 +24,7 @@ export function useIndicationCreate(onSuccess?: () => void) {
         })
         closeForm()
         onSuccess?.()
-      } catch (error) {
-        console.error('Erro ao criar indicação:', error)
+      } catch {
         toast({
           title: t('common.error'),
           description: t('common.errorMessage'),

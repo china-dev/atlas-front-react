@@ -7,6 +7,9 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
+  // SECURITY: Token stored in localStorage is readable by any JS on this page (XSS risk).
+  // Migration to HttpOnly cookie requires coordinated backend changes — deferred.
+  // See .memory/plan/2026-04-08-fix-blockers-analise.md (B7).
   const token = localStorage.getItem('atlas-token')
   if (token && config.headers) config.headers.Authorization = `Bearer ${token}`
   return config
@@ -17,6 +20,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('atlas-token')
+      window.location.href = '/login'
     }
     return Promise.reject(error)
   }

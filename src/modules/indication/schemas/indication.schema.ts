@@ -1,8 +1,11 @@
 import { z } from 'zod'
+import type { TFunction } from 'i18next'
 
-export const createIndicationSchema = z.object({
-  indication_name: z.string().min(3, 'O nome deve ter no mínimo 3 caracteres.'),
-  organization_name: z.string().min(2, 'A organização deve ter no mínimo 2 caracteres.'),
-})
+export function createIndicationSchema(t: TFunction) {
+  return z.object({
+    indication_name: z.string().min(3, t('indicationListing.create.form.errors.name')),
+    organization_name: z.string().min(2, t('indicationListing.create.form.errors.organization')),
+  })
+}
 
-export type CreateIndicationSchemaValues = z.infer<typeof createIndicationSchema>
+export type CreateIndicationSchemaValues = z.infer<ReturnType<typeof createIndicationSchema>>

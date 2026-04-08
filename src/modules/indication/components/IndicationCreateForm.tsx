@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
@@ -16,12 +17,13 @@ interface IndicationCreateFormProps {
 
 export function IndicationCreateForm({ id, isSubmitting, onSubmit }: IndicationCreateFormProps) {
   const { t } = useTranslation()
+  const schema = useMemo(() => createIndicationSchema(t), [t])
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<CreateIndicationSchemaValues>({
-    resolver: zodResolver(createIndicationSchema),
+    resolver: zodResolver(schema),
   })
 
   return (

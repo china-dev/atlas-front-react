@@ -3,12 +3,19 @@ import { useTranslation } from 'react-i18next'
 import { Sun, Moon } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
 import { useThemeStore } from '@/core/store/theme.store'
-import { useLanguageStore } from '@/core/store/language.store'
+import { useLanguageStore, LOCALES } from '@/core/store/language.store'
+import type { Locale } from '@/core/store/language.store'
 import brFlag from '@/assets/img/geral/bra.png'
 import usaFlag from '@/assets/img/geral/eua.png'
 import esFlag from '@/assets/img/geral/esp.png'
 
 type RouteHandle = { breadcrumb?: string }
+
+const FLAG_LABEL: Record<Locale, { flag: string; label: string }> = {
+  'pt-BR': { flag: brFlag, label: 'Português' },
+  'en-US': { flag: usaFlag, label: 'English' },
+  'es-ES': { flag: esFlag, label: 'Español' },
+}
 
 export function AppHeader() {
   const { t } = useTranslation()
@@ -23,11 +30,7 @@ export function AppHeader() {
       label: t((m.handle as RouteHandle).breadcrumb!),
     }))
 
-  const languages: { code: 'pt-BR' | 'en-US' | 'es-ES'; flag: string; label: string }[] = [
-    { code: 'pt-BR', flag: brFlag, label: 'Português' },
-    { code: 'en-US', flag: usaFlag, label: 'English' },
-    { code: 'es-ES', flag: esFlag, label: 'Español' },
-  ]
+  const languages = LOCALES.map((code) => ({ code, ...FLAG_LABEL[code] }))
 
   return (
     <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 py-2 shadow-sm">

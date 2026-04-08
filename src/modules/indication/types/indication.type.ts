@@ -1,5 +1,6 @@
 export interface IndicationApiResponse {
   id: number
+  ip?: string
   internal_uuid: string
   indication_name: string
   image_url: string
@@ -20,11 +21,10 @@ export interface IndicationApiResponse {
 
 export interface IndicationRow {
   id: number
+  ip: string
   name: string
-  img: string
-  registrationNumber: string
-  organization: string
-  address: { city: string; state: string }
-  createdAt: string
+  cityId: number
+  organizationId: number
   concessionDate: string
+  createdAt: string
 }
