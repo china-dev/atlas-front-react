@@ -1,6 +1,14 @@
 import { httpRequest } from '@/core/http/request.helper'
 import type { FetchResponse, ListingFilter } from '@/shared/hooks/useListing'
-import type { IndicationRow } from '../types/indication.type'
+import type {
+  ApiIndicationDetail,
+  IndicationApiResponse,
+  IndicationRow,
+} from '../types/indication.type'
+import type {
+  CreateIndicationSchemaValues,
+  UpdateIndicationSchemaValues,
+} from '../schemas/indication.schema'
 
 interface ApiIndication {
   id: number
@@ -27,21 +35,49 @@ interface ApiIndicationListResponse {
   pagination: ApiPagination
 }
 
+interface ApiOptionItem {
+  id: number
+  name: string
+}
+
+interface ApiOptionsResponse {
+  data: ApiOptionItem[]
+  pagination: ApiPagination
+}
+
+interface ApiWritePayload {
+  name: string
+  ip: string
+  city_id: number
+  organization_id: number
+  grant_date: string
+}
+
 function formatDate(isoString: string): string {
   const date = new Date(isoString)
   return date.toLocaleDateString('pt-BR')
 }
 
+function toWritePayload(values: CreateIndicationSchemaValues): ApiWritePayload {
+  return {
+    name: values.name,
+    ip: values.ip,
+    city_id: Number(values.city_id),
+    organization_id: Number(values.organization_id),
+    grant_date: values.grant_date,
+  }
+}
+
 export async function fetchIndications(
   filter: ListingFilter
 ): Promise<FetchResponse<IndicationRow>> {
-  const { search, page, limit } = filter
+  const { search, page, limit, signal } = filter
 
   const response = await httpRequest<ApiIndicationListResponse>(
     'GET',
     '/geographical-indications',
     undefined,
-    { params: { page, per_page: limit, search } }
+    { params: { page, per_page: limit, search }, signal }
   )
 
   const rows: IndicationRow[] = response.data.map((item) => ({
@@ -65,15 +101,69 @@ export async function fetchIndications(
   }
 }
 
+export async function fetchIndicationById(
+  id: number,
+  signal?: AbortSignal
+): Promise<ApiIndicationDetail> {
+  const response = await httpRequest<{ data: ApiIndicationDetail }>(
+    'GET',
+    `/geographical-indications/${id}`,
+    undefined,
+    { signal }
+  )
+  return response.data
+}
+
+export function mapToDisplayData(raw: ApiIndicationDetail): IndicationApiResponse {
+  return {
+    id: raw.id,
+    ip: raw.ip ?? undefined,
+    internal_uuid: String(raw.id),
+    indication_name: raw.name,
+    image_url: '',
+    registration_code: raw.ip ?? '',
+    organization_name: raw.organization.name,
+    location: {
+      city: raw.city.name,
+      state: raw.city.state.uf,
+      country: 'Brasil',
+      zip_code: '',
+      coordinates: { lat: 0, lng: 0 },
+    },
+    created_at: raw.created_at,
+    concession_date: raw.grant_date,
+    is_active: true,
+    audit_logs: [],
+  }
+}
+
 export async function deleteIndication(id: number): Promise<void> {
   await httpRequest('DELETE', '/geographical-indications/' + id)
 }
 
-export interface CreateIndicationPayload {
-  indication_name: string
-  organization_name: string
+export async function createIndication(values: CreateIndicationSchemaValues): Promise<void> {
+  await httpRequest('POST', '/geographical-indications', toWritePayload(values))
 }
 
-export async function createIndication(payload: CreateIndicationPayload): Promise<void> {
-  await httpRequest('POST', '/geographical-indications', payload)
+export async function updateIndication(
+  id: number,
+  values: UpdateIndicationSchemaValues
+): Promise<void> {
+  await httpRequest('PUT', `/geographical-indications/${id}`, toWritePayload(values))
+}
+
+export async function fetchCityOptions(signal?: AbortSignal): Promise<ApiOptionItem[]> {
+  const response = await httpRequest<ApiOptionsResponse>('GET', '/cities', undefined, {
+    params: { per_page: 100 },
+    signal,
+  })
+  return response.data
+}
+
+export async function fetchOrganizationOptions(signal?: AbortSignal): Promise<ApiOptionItem[]> {
+  const response = await httpRequest<ApiOptionsResponse>('GET', '/organizations', undefined, {
+    params: { per_page: 100 },
+    signal,
+  })
+  return response.data
 }

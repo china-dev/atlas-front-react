@@ -1,3 +1,35 @@
+export interface ApiIndicationDetail {
+  id: number
+  ip: string | null
+  name: string
+  city_id: number
+  organization_id: number
+  grant_date: string
+  created_at: string
+  updated_at: string
+  city: {
+    id: number
+    name: string
+    state: {
+      id: number
+      name: string
+      uf: string
+    }
+  }
+  organization: {
+    id: number
+    name: string
+  }
+}
+
+export interface UpdateIndicationPayload {
+  name: string
+  ip?: string
+  city_id: number
+  organization_id: number
+  grant_date: string
+}
+
 export interface IndicationApiResponse {
   id: number
   ip?: string

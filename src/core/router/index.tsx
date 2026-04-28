@@ -7,6 +7,7 @@ import IndicationListingPage from '@/modules/indication/IndicationListingPage'
 import CompaniesPage from '@/modules/companies/CompaniesPage'
 import SegmentationPage from '@/modules/segmentation/SegmentationPage'
 import TourismPage from '@/modules/tourism/TourismPage'
+import IndicationDetailPage from '@/modules/indication/IndicationDetailPage'
 
 export const router = createBrowserRouter([
   {
@@ -20,7 +21,14 @@ export const router = createBrowserRouter([
           {
             path: 'indicacao-geografica',
             handle: { breadcrumb: 'menu.indication' },
-            element: <IndicationListingPage />,
+            children: [
+              { index: true, element: <IndicationListingPage /> },
+              {
+                path: ':id',
+                handle: { dynamicBreadcrumb: true },
+                element: <IndicationDetailPage />,
+              },
+            ],
           },
           {
             path: 'empresas',

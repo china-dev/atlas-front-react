@@ -3,9 +3,10 @@ import { useForm, useController } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
 import {
-  createIndicationSchema,
-  type CreateIndicationSchemaValues,
+  updateIndicationSchema,
+  type UpdateIndicationSchemaValues,
 } from '../schemas/indication.schema'
+import type { ApiIndicationDetail } from '../types/indication.type'
 import { useIndicationFormOptions } from '../hooks/useIndicationFormOptions'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
@@ -13,24 +14,36 @@ import { Select } from '@/shared/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group'
 import { Spinner } from '@/shared/components/ui/spinner'
 
-interface IndicationCreateFormProps {
+interface IndicationEditFormProps {
   id: string
   isSubmitting: boolean
-  onSubmit: (values: CreateIndicationSchemaValues) => void
+  initialData: ApiIndicationDetail
+  onSubmit: (values: UpdateIndicationSchemaValues) => void
 }
 
-export function IndicationCreateForm({ id, isSubmitting, onSubmit }: IndicationCreateFormProps) {
+export function IndicationEditForm({
+  id,
+  isSubmitting,
+  initialData,
+  onSubmit,
+}: IndicationEditFormProps) {
   const { t } = useTranslation()
-  const schema = useMemo(() => createIndicationSchema(t), [t])
+  const schema = useMemo(() => updateIndicationSchema(t), [t])
   const { cities, organizations, isLoadingOptions, optionsError } = useIndicationFormOptions()
   const {
     register,
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<CreateIndicationSchemaValues>({
+  } = useForm<UpdateIndicationSchemaValues>({
     resolver: zodResolver(schema),
-    defaultValues: { ip: 'IP' },
+    defaultValues: {
+      name: initialData.name,
+      ip: initialData.ip === 'IP' || initialData.ip === 'DO' ? initialData.ip : 'IP',
+      city_id: String(initialData.city_id),
+      organization_id: String(initialData.organization_id),
+      grant_date: initialData.grant_date,
+    },
   })
 
   const { field: ipField } = useController({ name: 'ip', control })
@@ -42,9 +55,9 @@ export function IndicationCreateForm({ id, isSubmitting, onSubmit }: IndicationC
       {optionsError && <p className="text-sm text-destructive">{optionsError}</p>}
 
       <div className="space-y-2">
-        <Label htmlFor="name">{t('indicationListing.create.form.name.label')}</Label>
+        <Label htmlFor="edit-name">{t('indicationListing.create.form.name.label')}</Label>
         <Input
-          id="name"
+          id="edit-name"
           placeholder={t('indicationListing.create.form.name.placeholder')}
           disabled={disabled}
           {...register('name')}
@@ -57,8 +70,8 @@ export function IndicationCreateForm({ id, isSubmitting, onSubmit }: IndicationC
         <RadioGroup value={ipField.value} onValueChange={ipField.onChange} disabled={disabled}>
           {(['IP', 'DO'] as const).map((opt) => (
             <div key={opt} className="flex items-center gap-2">
-              <RadioGroupItem value={opt} id={`ip-${opt}`} />
-              <Label htmlFor={`ip-${opt}`} className="cursor-pointer font-normal">
+              <RadioGroupItem value={opt} id={`edit-ip-${opt}`} />
+              <Label htmlFor={`edit-ip-${opt}`} className="cursor-pointer font-normal">
                 {opt}
               </Label>
             </div>
@@ -68,8 +81,10 @@ export function IndicationCreateForm({ id, isSubmitting, onSubmit }: IndicationC
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="grant_date">{t('indicationListing.create.form.grantDate.label')}</Label>
-        <Input id="grant_date" type="date" disabled={disabled} {...register('grant_date')} />
+        <Label htmlFor="edit-grant-date">
+          {t('indicationListing.create.form.grantDate.label')}
+        </Label>
+        <Input id="edit-grant-date" type="date" disabled={disabled} {...register('grant_date')} />
         {errors.grant_date && (
           <p className="text-sm text-destructive">{errors.grant_date.message}</p>
         )}
@@ -77,10 +92,10 @@ export function IndicationCreateForm({ id, isSubmitting, onSubmit }: IndicationC
 
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <Label htmlFor="city_id">{t('indicationListing.create.form.city.label')}</Label>
+          <Label htmlFor="edit-city-id">{t('indicationListing.create.form.city.label')}</Label>
           {isLoadingOptions && <Spinner size="sm" />}
         </div>
-        <Select id="city_id" disabled={disabled} {...register('city_id')}>
+        <Select id="edit-city-id" disabled={disabled} {...register('city_id')}>
           <option value="">{t('indicationListing.create.form.city.placeholder')}</option>
           {cities.map((city) => (
             <option key={city.id} value={city.id}>
@@ -93,12 +108,12 @@ export function IndicationCreateForm({ id, isSubmitting, onSubmit }: IndicationC
 
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <Label htmlFor="organization_id">
+          <Label htmlFor="edit-organization-id">
             {t('indicationListing.create.form.organization.label')}
           </Label>
           {isLoadingOptions && <Spinner size="sm" />}
         </div>
-        <Select id="organization_id" disabled={disabled} {...register('organization_id')}>
+        <Select id="edit-organization-id" disabled={disabled} {...register('organization_id')}>
           <option value="">{t('indicationListing.create.form.organization.placeholder')}</option>
           {organizations.map((org) => (
             <option key={org.id} value={org.id}>

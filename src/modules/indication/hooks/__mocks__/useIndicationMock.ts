@@ -21,18 +21,16 @@ export const baseMockApi: IndicationApiResponse = {
   audit_logs: ['Criado por admin', 'Aprovado por comitê'],
 }
 
-export let allIndicationsMock: IndicationApiResponse[] = Array.from({ length: 35 }).map(
-  (_, index) => ({
-    ...baseMockApi,
-    id: index + 1,
-    indication_name:
-      index % 2 === 0
-        ? `Calçado Infantil de Birigui ${index + 1}`
-        : `Queijo da Canastra ${index + 1}`,
-    registration_code: `IP - 12335441122${index + 10}`,
-    organization_name: index % 2 === 0 ? 'SINBI' : 'APROCAN',
-  })
-)
+let allIndicationsMock: IndicationApiResponse[] = Array.from({ length: 35 }).map((_, index) => ({
+  ...baseMockApi,
+  id: index + 1,
+  indication_name:
+    index % 2 === 0
+      ? `Calçado Infantil de Birigui ${index + 1}`
+      : `Queijo da Canastra ${index + 1}`,
+  registration_code: `IP - 12335441122${index + 10}`,
+  organization_name: index % 2 === 0 ? 'SINBI' : 'APROCAN',
+}))
 
 export const fetchIndicationsApiMock = async (
   filter: ListingFilter

@@ -16,6 +16,7 @@ export interface ListingFilter {
   search?: string
   page?: number
   limit?: number
+  signal?: AbortSignal
 }
 
 export interface UseListingOptions<T> {
@@ -49,36 +50,44 @@ export function useListing<T>(options: UseListingOptions<T>) {
   const itemsPerPageRef = useRef(options.itemsPerPage)
   itemsPerPageRef.current = options.itemsPerPage
 
+  const abortRef = useRef<AbortController | null>(null)
+
   const load = useCallback(async (page: number, search: string) => {
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+
     setIsLoading(true)
     setError(null)
     try {
       const filterObj: ListingFilter = {
         search: search || undefined,
+        signal: controller.signal,
         ...(enablePaginationRef.current !== false && {
           page,
           limit: itemsPerPageRef.current || 10,
         }),
       }
       const response = await fetcherRef.current(filterObj)
-      setData(response.data)
-      if (enablePaginationRef.current !== false) setPagination(response.meta)
+      if (!controller.signal.aborted) {
+        setData(response.data)
+        if (enablePaginationRef.current !== false) setPagination(response.meta)
+      }
     } catch (err) {
-      setError((err as Error).message || 'Erro ao carregar os dados.')
+      if (!controller.signal.aborted) {
+        setError((err as Error).message || 'Erro ao carregar os dados.')
+      }
     } finally {
-      setIsLoading(false)
+      if (!controller.signal.aborted) {
+        setIsLoading(false)
+      }
     }
   }, [])
 
-  // initial load — intentionally runs once on mount
-  useEffect(() => {
-    load(pagination.currentPage, searchQuery)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // reload on page change
+  // handles initial load and page changes
   useEffect(() => {
     load(pagination.currentPage, searchRef.current)
+    return () => abortRef.current?.abort()
   }, [load, pagination.currentPage])
 
   // reload on search change (reset to page 1)
@@ -88,6 +97,7 @@ export function useListing<T>(options: UseListingOptions<T>) {
     prevSearch.current = searchQuery
     setPagination((p) => ({ ...p, currentPage: 1 }))
     load(1, searchQuery)
+    return () => abortRef.current?.abort()
   }, [load, searchQuery])
 
   const setPage = (page: number) => setPagination((p) => ({ ...p, currentPage: page }))
