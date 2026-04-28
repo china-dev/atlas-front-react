@@ -1,5 +1,6 @@
+import axios from 'axios'
+import type { AxiosRequestConfig } from 'axios'
 import api from './api'
-import type { AxiosRequestConfig, AxiosError } from 'axios'
 
 interface ErrorResponse {
   message: string
@@ -15,11 +16,13 @@ export async function httpRequest<T>(
     const response = await api.request<T>({ method, url, data, ...config })
     return response.data
   } catch (e) {
-    const error = e as AxiosError<ErrorResponse>
-    throw new Error(
-      error.response?.data?.message ||
-        error.message ||
-        'Ocorreu um erro inesperado na comunicação com o servidor.'
-    )
+    if (axios.isAxiosError<ErrorResponse>(e)) {
+      throw new Error(
+        e.response?.data?.message ||
+          e.message ||
+          'Ocorreu um erro inesperado na comunicação com o servidor.'
+      )
+    }
+    throw new Error('Ocorreu um erro inesperado na comunicação com o servidor.')
   }
 }

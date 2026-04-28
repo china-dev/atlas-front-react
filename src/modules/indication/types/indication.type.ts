@@ -1,5 +1,38 @@
+export interface ApiIndicationDetail {
+  id: number
+  ip: string | null
+  name: string
+  city_id: number
+  organization_id: number
+  grant_date: string
+  created_at: string
+  updated_at: string
+  city: {
+    id: number
+    name: string
+    state: {
+      id: number
+      name: string
+      uf: string
+    }
+  }
+  organization: {
+    id: number
+    name: string
+  }
+}
+
+export interface UpdateIndicationPayload {
+  name: string
+  ip?: string
+  city_id: number
+  organization_id: number
+  grant_date: string
+}
+
 export interface IndicationApiResponse {
   id: number
+  ip?: string
   internal_uuid: string
   indication_name: string
   image_url: string
@@ -20,11 +53,10 @@ export interface IndicationApiResponse {
 
 export interface IndicationRow {
   id: number
+  ip: string
   name: string
-  img: string
-  registrationNumber: string
-  organization: string
-  address: { city: string; state: string }
-  createdAt: string
+  cityId: number
+  organizationId: number
   concessionDate: string
+  createdAt: string
 }

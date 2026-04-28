@@ -1,5 +1,7 @@
+import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Trash2, FileSearch, PlusCircle } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Trash2, FileSearch, PlusCircle, Link } from 'lucide-react'
 import { useIndications } from './hooks/useIndication'
 import { useIndicationCreate } from './hooks/useIndicationCreate'
 import { ListingTable } from '@/shared/components/base/ListingTable'
@@ -11,6 +13,7 @@ import type { IndicationRow } from './types/indication.type'
 
 export default function IndicationListingPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
 
   const {
     columns,
@@ -31,49 +34,46 @@ export default function IndicationListingPage() {
   const { isFormOpened, isSubmitting, openForm, closeForm, handleSubmit } =
     useIndicationCreate(reload)
 
-  const renderCell = (columnId: string, row: IndicationRow) => {
-    if (columnId === 'name') {
-      return (
-        <div className="flex items-center gap-3">
-          <img
-            src={row.img}
-            alt={row.name}
-            className="w-10 h-10 rounded-full object-cover border border-border"
-          />
-          <div className="flex flex-col">
-            <span className="font-medium text-foreground">{row.name}</span>
-            <span className="text-xs text-muted-foreground">{row.registrationNumber}</span>
-          </div>
-        </div>
-      )
-    }
-    if (columnId === 'address') {
-      return (
-        <span className="text-foreground">
-          {row.address.city} - {row.address.state}
-        </span>
-      )
-    }
-    if (columnId === 'actions') {
-      return (
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground hover:text-destructive"
-            disabled={isLoading}
-            onClick={() => promptDelete(row)}
+  const renderCell = useCallback(
+    (columnId: string, row: IndicationRow) => {
+      if (columnId === 'name') {
+        return (
+          <span
+            className="inline-flex items-center gap-1.5 font-medium text-foreground hover:underline cursor-pointer"
+            onClick={() => navigate(`/indicacao-geografica/${row.id}`)}
           >
-            <Trash2 className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
-            <FileSearch className="w-4 h-4" />
-          </Button>
-        </div>
-      )
-    }
-    return null
-  }
+            {row.name}
+            <Link className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+          </span>
+        )
+      }
+      if (columnId === 'actions') {
+        return (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-destructive"
+              disabled={isLoading}
+              onClick={() => promptDelete(row)}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-primary"
+              onClick={() => navigate(`/indicacao-geografica/${row.id}`)}
+            >
+              <FileSearch className="w-4 h-4" />
+            </Button>
+          </div>
+        )
+      }
+      return null
+    },
+    [isLoading, navigate, promptDelete]
+  )
 
   return (
     <div className="space-y-4">

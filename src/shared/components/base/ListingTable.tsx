@@ -2,6 +2,7 @@ import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from '@tan
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
+import { Spinner } from '@/shared/components/ui/spinner'
 import {
   Table,
   TableBody,
@@ -67,9 +68,7 @@ export function ListingTable<TData>({
       <div className="rounded-md border border-border bg-card overflow-hidden relative">
         {isLoading && (
           <div className="absolute inset-0 z-10 bg-background/50 flex items-center justify-center backdrop-blur-[1px]">
-            <span className="text-sm text-primary font-medium animate-pulse">
-              {t('common.loading')}
-            </span>
+            <Spinner size="lg" />
           </div>
         )}
 

@@ -19,15 +19,32 @@
             "label": "Nome",
             "placeholder": "Digite o nome da indicação"
           },
+          "ip": {
+            "label": "Tipo de IP",
+            "placeholder": "Ex: IG, IP, DO"
+          },
+          "grantDate": {
+            "label": "Data de Concessão"
+          },
+          "city": {
+            "label": "Cidade",
+            "placeholder": "Selecione uma cidade"
+          },
           "organization": {
-            "label": "Orgão",
-            "placeholder": "Digite o nome do órgão"
+            "label": "Organização",
+            "placeholder": "Selecione uma organização"
           },
           "errors": {
             "name": "O nome deve ter no mínimo 3 caracteres.",
-            "organization": "A organização deve ter no mínimo 2 caracteres."
+            "city": "Selecione uma cidade.",
+            "organization": "Selecione uma organização.",
+            "grantDate": "Informe a data de concessão."
           }
         }
+      },
+      "edit": {
+        "title": "Editar Indicação Geográfica",
+        "description": "Atualize os dados da indicação geográfica"
       }
     }
   },
@@ -44,22 +61,39 @@
         }
       },
       "create": {
-        "title": "Indication",
-        "description": "Create a new indication",
+        "title": "Geographical Indications",
+        "description": "Create a new geographical indication",
         "form": {
           "name": {
             "label": "Name",
-            "placeholder": "Enter the name of the indication"
+            "placeholder": "Enter the indication name"
+          },
+          "ip": {
+            "label": "IP Type",
+            "placeholder": "E.g.: GI, PI, DO"
+          },
+          "grantDate": {
+            "label": "Grant Date"
+          },
+          "city": {
+            "label": "City",
+            "placeholder": "Select a city"
           },
           "organization": {
             "label": "Organization",
-            "placeholder": "Enter the name of the organization"
+            "placeholder": "Select an organization"
           },
           "errors": {
             "name": "The name must have at least 3 characters.",
-            "organization": "The organization must have at least 2 characters."
+            "city": "Please select a city.",
+            "organization": "Please select an organization.",
+            "grantDate": "Please enter the grant date."
           }
         }
+      },
+      "edit": {
+        "title": "Edit Geographical Indication",
+        "description": "Update the geographical indication data"
       }
     }
   },
@@ -83,15 +117,32 @@
             "label": "Nombre",
             "placeholder": "Ingrese el nombre de la indicación"
           },
+          "ip": {
+            "label": "Tipo de IP",
+            "placeholder": "Ej: IG, IP, DO"
+          },
+          "grantDate": {
+            "label": "Fecha de Concesión"
+          },
+          "city": {
+            "label": "Ciudad",
+            "placeholder": "Seleccione una ciudad"
+          },
           "organization": {
-            "label": "Órgano",
-            "placeholder": "Ingrese el nombre del organización"
+            "label": "Organización",
+            "placeholder": "Seleccione una organización"
           },
           "errors": {
             "name": "El nombre debe tener al menos 3 caracteres.",
-            "organization": "La organización debe tener al menos 2"
+            "city": "Seleccione una ciudad.",
+            "organization": "Seleccione una organización.",
+            "grantDate": "Ingrese la fecha de concesión."
           }
         }
+      },
+      "edit": {
+        "title": "Editar Indicación Geográfica",
+        "description": "Actualiza los datos de la indicación geográfica"
       }
     }
   }
