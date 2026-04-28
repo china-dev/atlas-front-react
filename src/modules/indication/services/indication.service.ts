@@ -77,7 +77,14 @@ export async function fetchIndications(
     'GET',
     '/geographical-indications',
     undefined,
-    { params: { page, per_page: limit, search }, signal }
+    {
+      params: {
+        page,
+        per_page: limit,
+        search,
+      },
+      signal,
+    }
   )
 
   const rows: IndicationRow[] = response.data.map((item) => ({
