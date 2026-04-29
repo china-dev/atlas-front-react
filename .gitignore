@@ -36,4 +36,4 @@ dist-ssr
 *.context.md
 AGENTS.md
 .memory/
-.claude/
+.claude/opencode.json

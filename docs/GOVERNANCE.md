@@ -32,6 +32,36 @@ VITE_API_URL=http://localhost:8000/api
 | `npm run lint`   | Executa o ESLint em todo o projeto                |
 | `npm run format` | Formata o código com Prettier                     |
 
+### Atlas CLI — gerador de módulos
+
+O projeto inclui um scaffolder de linha de comando que gera todos os 14 arquivos de boilerplate de um módulo CRUD, cria os arquivos i18n correspondentes, e registra a rota automaticamente.
+
+```bash
+npm run atlas -- create module <nome>
+```
+
+**Exemplos:**
+
+```bash
+npm run atlas -- create module product
+npm run atlas -- create module productCategory
+npm run atlas -- create module product-category
+```
+
+**O que é gerado:**
+
+- `src/modules/<kebab>/` — árvore completa do módulo (14 arquivos)
+- `src/mock/languages/<kebab>/<kebab>-listing.json` — chaves i18n de listagem (pt-BR, en-US, es-ES)
+- Patch em `src/mock/languages/common.json` — chaves `<feature>Detail` nos 3 locales
+- Patch em `src/core/router/index.tsx` — imports e rota aninhada com listing + detail
+
+**Pós-geração — checklist manual:**
+
+1. Revisar o endpoint da API em `services/<kebab>.service.ts` (gerado como `/<kebab-plural>`)
+2. Ajustar o `path` da rota no router se necessário (gerado como `/<kebab>`)
+3. Adicionar a chave `menu.<feature>` em `src/mock/languages/menu/menu.json`
+4. Preencher campos customizados em types, schemas, forms e containers
+
 ### Desenvolvimento sem backend de autenticação
 
 O backend ainda não expõe o endpoint `POST /auth/login`. Para acessar a aplicação em ambiente de desenvolvimento sem autenticar:
