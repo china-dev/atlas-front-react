@@ -52,7 +52,8 @@ npm run atlas -- create module product-category
 
 - `src/modules/<kebab>/` — árvore completa do módulo (14 arquivos)
 - `src/mock/languages/<kebab>/<kebab>-listing.json` — chaves i18n de listagem (pt-BR, en-US, es-ES)
-- Patch em `src/mock/languages/common.json` — chaves `<feature>Detail` nos 3 locales
+- `src/mock/languages/<kebab>/<kebab>-detail.json` — chaves i18n de detalhe (pt-BR, en-US, es-ES)
+- Patch em `src/core/i18n/index.ts` — imports e spreads de listing + detail
 - Patch em `src/core/router/index.tsx` — imports e rota aninhada com listing + detail
 
 **Pós-geração — checklist manual:**
@@ -132,6 +133,8 @@ graph TD
 
 #### 1. Estrutura de diretórios
 
+> **Regra de nomenclatura:** use sempre o **singular** do domínio como nome do módulo — `organization`, não `organizations`; `product`, não `products`. O CLI e todos os sufixos (tipo, função, arquivo) derivam desse singular. Nomes plurais causam duplicações (`useOrganizationss`, `ApiOrganizations`) e tipos semanticamente errados (uma `interface` representa uma instância, não uma coleção).
+
 ```
 src/modules/<feature>/
 ├── <Feature>ListingPage.tsx
@@ -178,13 +181,15 @@ Edite `src/core/router/index.tsx` e adicione as rotas dentro do bloco `Protected
 
 #### 3. Registrar traduções i18n
 
-Crie o JSON de traduções em `src/mock/languages/<feature>/<feature>-listing.json` com os três locales (`pt-BR`, `en-US`, `es-ES`). Em seguida, registre o namespace em `src/core/i18n/index.ts`:
+O CLI gera e registra os dois arquivos automaticamente. Para módulos criados manualmente, crie os JSONs em `src/mock/languages/<feature>/` e registre ambos em `src/core/i18n/index.ts`:
 
 ```ts
+import myModuleDetail from '@/mock/languages/my-module/my-module-detail.json'
 import myModuleListing from '@/mock/languages/my-module/my-module-listing.json'
 
 const mergeTranslations = (lang: string) => ({
   // ... namespaces existentes ...
+  ...myModuleDetail[lang as keyof typeof myModuleDetail],
   ...myModuleListing[lang as keyof typeof myModuleListing],
 })
 ```
@@ -206,10 +211,10 @@ function MeuComponente() {
 
 **Estrutura do arquivo de traduções**
 
-As traduções são divididas em dois arquivos:
+As traduções de cada feature são divididas em dois arquivos dedicados:
 
 - **`src/mock/languages/<feature>/<feature>-listing.json`** — chaves de listagem e formulários do feature
-- **`src/mock/languages/common.json`** — chaves de detalhe e globais (adicione aqui a seção `<feature>Detail`)
+- **`src/mock/languages/<feature>/<feature>-detail.json`** — chaves de detalhe do feature
 
 Conteúdo de `<feature>-listing.json`:
 
@@ -247,19 +252,23 @@ Conteúdo de `<feature>-listing.json`:
 }
 ```
 
-Em `src/mock/languages/common.json`, adicione dentro de cada locale a seção de detalhe:
+Conteúdo de `<feature>-detail.json`:
 
 ```jsonc
 {
   "pt-BR": {
-    "common": {
-      /* ... keys existentes ... */
-    },
     "<feature>Detail": {
+      "breadcrumb": "Detalhes de <Feature>",
       "backToList": "Voltar à lista",
       "sections": { "main": "Dados Gerais" },
       "fields": { "id": "ID", "name": "Nome" },
     },
+  },
+  "en-US": {
+    /* mesma estrutura em inglês */
+  },
+  "es-ES": {
+    /* mesma estrutura em espanhol */
   },
 }
 ```
@@ -1161,6 +1170,30 @@ import { DetailContainer, DetailField } from '@/shared/components/base/DetailCon
   ```
 - **Sem arquivos `*.d.ts` globais** — tipos ficam nos arquivos de fonte. Tipos compartilhados entre módulos devem ir para `src/shared/hooks/useListing.ts` ou `src/core/store/language.store.ts` como referência de padrão.
 
+### Campos nullable da API
+
+Quando a coluna do banco permite `NULL`, declare o campo como `string | null` no type. No mapeamento do serviço, use o operador de coalescência para converter para `string` antes de atribuir ao tipo `Row`. Repita a conversão nos `defaultValues` do RHF para impedir que o input receba `null`:
+
+```ts
+// type:
+name: string | null
+
+// mapeamento no service (Row não aceita null):
+name: item.name ?? ''
+
+// defaultValues no EditForm:
+defaultValues: {
+  name: initialData.name ?? ''
+}
+```
+
+**Quando usar `.optional()` no schema Zod:** use apenas em campos que o usuário pode deixar em branco na UI. Um campo nullable no banco mas obrigatório na UI deve usar `.min(1, ...)`. Um campo nullable no banco e opcional na UI usa `.optional()`:
+
+```ts
+acronym: z.string().min(1, t('...')).max(50, t('...')), // obrigatório + limite
+name: z.string().max(200, t('...')).optional(),          // opcional + limite
+```
+
 ---
 
 ## 5. Boilerplate
@@ -1177,12 +1210,12 @@ Os 14 arquivos a seguir, em ordem de dependência, formam o mínimo viável para
 // Shape bruta da API (resposta do endpoint de listagem)
 export interface Api<Feature> {
   id: number
-  name: string
+  name: string           // use `string | null` se a coluna for nullable no banco
   created_at: string
   updated_at: string
 }
 
-// Shape usada na tabela de listagem
+// Shape usada na tabela de listagem (sem null — converta no service com ?? '')
 export interface <Feature>Row {
   id: number
   name: string
@@ -1192,10 +1225,14 @@ export interface <Feature>Row {
 // Shape completa retornada pelo endpoint de detalhe
 export interface Api<Feature>Detail {
   id: number
-  name: string
+  name: string           // use `string | null` se a coluna for nullable no banco
   created_at: string
   updated_at: string
 }
+
+// Para relações has-many no detalhe, declare um type de referência:
+// export interface <RelatedFeature>Ref { id: number; name: string }
+// e adicione ao ApiDetail: related: <RelatedFeature>Ref[]
 ```
 
 ---
@@ -1209,7 +1246,12 @@ import type { TFunction } from 'i18next'
 
 export function create<Feature>Schema(t: TFunction) {
   return z.object({
+    // Campo obrigatório simples:
     name: z.string().min(1, t('<feature>Listing.create.form.errors.name')),
+    // Campo obrigatório com limite de caracteres:
+    // acronym: z.string().min(1, t('...')).max(50, t('...')),
+    // Campo opcional com limite (nullable no banco, pode ficar vazio na UI):
+    // description: z.string().max(200, t('...')).optional(),
   })
 }
 
@@ -1294,6 +1336,18 @@ export async function delete<Feature>(id: number): Promise<void> {
   await httpRequest('DELETE', `/<api-endpoint>/${id}`)
 }
 ```
+
+> **Convenção de nomes das funções de serviço:** use plural para coleção e singular para instância — nunca repita o sufixo do Feature. Exemplo para o domínio `organization`:
+>
+> | Função                  | Descrição                          |
+> | ----------------------- | ---------------------------------- |
+> | `fetchOrganizations`    | GET /organizations (coleção)       |
+> | `fetchOrganizationById` | GET /organizations/:id (instância) |
+> | `createOrganization`    | POST /organizations                |
+> | `updateOrganization`    | PUT /organizations/:id             |
+> | `deleteOrganization`    | DELETE /organizations/:id          |
+>
+> Quando o nome do módulo já é singular (`organization`), o template `fetch<Feature>s` gera `fetchOrganizations` corretamente. Se o domínio for palavras irregulares, ajuste manualmente.
 
 ---
 
@@ -1534,6 +1588,8 @@ export function use<Feature>FormOptions() {
 
 O esqueleto acima retorna apenas um array de opções. Na prática, a maioria dos formulários precisa de múltiplos grupos — por exemplo, `indication` busca cidades E organizações em paralelo. Para cada grupo adicional, duplique o `useState`, o `fetchXxx` e o tratamento dentro do `useEffect`, usando `Promise.all` para disparar os fetches em paralelo. Exporte todos os arrays e seus estados de loading/error pelo objeto de retorno do hook.
 
+> **Quando omitir:** se o módulo não possui campos de select que dependem de dados externos (nenhum dropdown de cidade, organização, categoria etc.), delete o arquivo gerado e remova seu import dos formulários. O critério: existe algum `<Select>` no formulário cujas opções vêm de um endpoint? Se não, omita o hook.
+
 ---
 
 ### Arquivo 9 — `components/<Feature>CreateForm.tsx`
@@ -1573,6 +1629,9 @@ export function <Feature>CreateForm({ id, isSubmitting, onSubmit }: <Feature>Cre
         />
         {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
       </div>
+      {/* Para cada campo adicional, duplique o bloco acima com id e register distintos.
+          Campos opcionais (schema com .optional()) funcionam igual — apenas o erro
+          não será exibido se o campo não foi tocado. */}
     </form>
   )
 }
@@ -1605,6 +1664,8 @@ export function <Feature>EditForm({ id, isSubmitting, initialData, onSubmit }: <
   const schema = useMemo(() => update<Feature>Schema(t), [t])
   const { register, handleSubmit, formState: { errors } } = useForm<Update<Feature>SchemaValues>({
     resolver: zodResolver(schema),
+    // Se algum campo for string | null no ApiDetail, converta com ?? '' para evitar
+    // que o input receba null: defaultValues: { name: initialData.name ?? '' }
     defaultValues: { name: initialData.name },
   })
 
@@ -1646,6 +1707,77 @@ export function <Feature>MainContainer({ data, onEdit }: Props) {
       </div>
     </DetailContainer>
   )
+}
+```
+
+---
+
+### Arquivo 11b (opcional) — `containers/<Feature>Related<Xxx>Container.tsx`
+
+Use quando o endpoint de detalhe retorna uma relação has-many (ex: `geographical_indications: []`). Crie um container adicional além do `MainContainer`.
+
+**No type (`Api<Feature>Detail`):** adicione o campo de relação antes de criar o container:
+
+```ts
+export interface <RelatedFeature>Ref { id: number; name: string }
+
+export interface Api<Feature>Detail {
+  // ...campos escalares...
+  related_items: <RelatedFeature>Ref[]
+}
+```
+
+**O container:**
+
+```tsx
+// src/modules/<feature>/containers/<Feature>Related<Xxx>Container.tsx
+import { useTranslation } from 'react-i18next'
+import { DetailContainer } from '@/shared/components/base/DetailContainer'
+import type { <RelatedFeature>Ref } from '../types/<feature>.type'
+
+interface Props {
+  items: <RelatedFeature>Ref[]
+}
+
+export function <Feature>Related<Xxx>Container({ items }: Props) {
+  const { t } = useTranslation()
+
+  return (
+    <DetailContainer title={t('<feature>Detail.sections.<xxx>')}>
+      {items.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t('common.emptyListing')}</p>
+      ) : (
+        <ul className="divide-y divide-border">
+          {items.map((item) => (
+            <li key={item.id} className="py-2 text-sm">
+              <span className="font-medium">{item.name}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </DetailContainer>
+  )
+}
+```
+
+**Na DetailPage**, adicione o import e renderize abaixo do `MainContainer`:
+
+```tsx
+import { <Feature>Related<Xxx>Container } from './containers/<Feature>Related<Xxx>Container'
+
+// dentro do return:
+<<Feature>MainContainer data={data} onEdit={() => openForm(data)} />
+<<Feature>Related<Xxx>Container items={data.related_items} />
+```
+
+**No `common.json`**, adicione a chave de seção:
+
+```jsonc
+"<feature>Detail": {
+  "sections": {
+    "main": "Dados Gerais",
+    "<xxx>": "Itens Relacionados"
+  }
 }
 ```
 
@@ -1793,6 +1925,8 @@ export default function <Feature>DetailPage() {
   const clearTitle = useBreadcrumbStore((s) => s.clearTitle)
 
   useEffect(() => {
+    // Se `data.name` for `string | null`, use um campo sempre não-nulo como breadcrumb
+    // (ex: setTitle(data.acronym)) ou aplique: setTitle(data.name ?? String(data.id))
     if (data) setTitle(data.name)
     return () => clearTitle()
   }, [data, setTitle, clearTitle])
@@ -1902,12 +2036,15 @@ Antes de abrir PR, confirme:
 - [ ] `hooks/use<Feature>Create.ts` — abertura/fechamento de form + submit
 - [ ] `hooks/use<Feature>Edit.ts` — abertura com `editTarget` + submit
 - [ ] `hooks/use<Feature>Detail.ts` — fetch por ID com `AbortController`
-- [ ] `hooks/use<Feature>FormOptions.ts` — opções de select com `AbortController`
+- [ ] `hooks/use<Feature>FormOptions.ts` — opções de select com `AbortController` _(omitir se o módulo não tem selects dependentes)_
 - [ ] `hooks/__mocks__/use<Feature>Mock.ts` — dados de mock para desenvolvimento offline
 - [ ] `components/<Feature>CreateForm.tsx` — RHF + Zod, `id` prop para `FormDialog`
 - [ ] `components/<Feature>EditForm.tsx` — `initialData` prop, `defaultValues` preenchidos
 - [ ] `containers/<Feature>MainContainer.tsx` — sem estado, recebe `data` por prop
+- [ ] `containers/<Feature>Related<Xxx>Container.tsx` _(opcional)_ — para relações has-many no detalhe
 - [ ] `<Feature>ListingPage.tsx` — orquestra hooks, não contém lógica de negócio
 - [ ] `<Feature>DetailPage.tsx` — chama `useBreadcrumbStore.setTitle` no `useEffect`
 - [ ] Rota registrada em `src/core/router/index.tsx`
-- [ ] JSON de traduções criado e importado em `src/core/i18n/index.ts`
+- [ ] `src/mock/languages/<kebab>/<kebab>-listing.json` — chaves de listagem e formulários criadas
+- [ ] `src/mock/languages/<kebab>/<kebab>-detail.json` — chaves de detalhe criadas
+- [ ] Ambos importados e spreados em `src/core/i18n/index.ts`

@@ -56,8 +56,9 @@ function toPascal(kebab) {
 }
 
 function toPlural(kebab) {
+  if (/s$/.test(kebab)) return kebab
   if (/[^aeiou]y$/.test(kebab)) return kebab.slice(0, -1) + 'ies'
-  if (/[sxz]$/.test(kebab) || /[cs]h$/.test(kebab)) return kebab + 'es'
+  if (/[xz]$/.test(kebab) || /[cs]h$/.test(kebab)) return kebab + 'es'
   return kebab + 's'
 }
 
@@ -123,7 +124,7 @@ export type Update{{Feature}}SchemaValues = z.infer<ReturnType<typeof update{{Fe
   )
 }
 
-function tplService({ Feature, feature, kebab, apiSlug }) {
+function tplService({ Feature, feature, kebab, apiSlug, featurePlural, FeaturePlural }) {
   return sub(
     `// src/modules/{{kebab}}/services/{{kebab}}.service.ts
 import { httpRequest } from '@/core/http/request.helper'
@@ -147,7 +148,7 @@ function formatDate(isoString: string): string {
   return new Date(isoString).toLocaleDateString('pt-BR')
 }
 
-export async function fetch{{Feature}}s(filter: ListingFilter): Promise<FetchResponse<{{Feature}}Row>> {
+export async function fetch{{FeaturePlural}}(filter: ListingFilter): Promise<FetchResponse<{{Feature}}Row>> {
   const { search, page, limit, signal } = filter
   const response = await httpRequest<Api{{Feature}}ListResponse>(
     'GET',
@@ -193,22 +194,22 @@ export async function delete{{Feature}}(id: number): Promise<void> {
   await httpRequest('DELETE', \`/{{apiSlug}}/\${id}\`)
 }
 `,
-    { Feature, feature, kebab, apiSlug }
+    { Feature, feature, kebab, apiSlug, featurePlural, FeaturePlural }
   )
 }
 
-function tplHookListing({ Feature, feature, kebab }) {
+function tplHookListing({ Feature, feature, kebab, featurePlural, FeaturePlural }) {
   return sub(
-    `// src/modules/{{kebab}}/hooks/use{{Feature}}.ts
+    `// src/modules/{{kebab}}/hooks/use{{FeaturePlural}}.ts
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { {{Feature}}Row } from '../types/{{kebab}}.type'
 import { useListing } from '@/shared/hooks/useListing'
 import { toast } from '@/shared/components/ui/toast/use-toast'
-import { fetch{{Feature}}s, delete{{Feature}} } from '../services/{{kebab}}.service'
+import { fetch{{FeaturePlural}}, delete{{Feature}} } from '../services/{{kebab}}.service'
 
-export function use{{Feature}}s() {
+export function use{{FeaturePlural}}() {
   const { t } = useTranslation()
 
   const columns: ColumnDef<{{Feature}}Row>[] = [
@@ -218,7 +219,7 @@ export function use{{Feature}}s() {
   ]
 
   const { data, isLoading, pagination, searchQuery, setSearchQuery, setPage, reload } =
-    useListing<{{Feature}}Row>({ fetcher: fetch{{Feature}}s, enablePagination: true })
+    useListing<{{Feature}}Row>({ fetcher: fetch{{FeaturePlural}}, enablePagination: true })
 
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -262,7 +263,7 @@ export function use{{Feature}}s() {
   }
 }
 `,
-    { Feature, feature, kebab }
+    { Feature, feature, kebab, featurePlural, FeaturePlural }
   )
 }
 
@@ -445,7 +446,7 @@ export function use{{Feature}}FormOptions() {
   )
 }
 
-function tplHookMock({ Feature, feature, kebab }) {
+function tplHookMock({ Feature, feature, kebab, featurePlural, FeaturePlural }) {
   return sub(
     `// src/modules/{{kebab}}/hooks/__mocks__/use{{Feature}}Mock.ts
 import type { {{Feature}}Row } from '../../types/{{kebab}}.type'
@@ -463,7 +464,7 @@ let allMocks: {{Feature}}Row[] = Array.from({ length: 20 }).map((_, i) => ({
   name: \`Registro \${i + 1}\`,
 }))
 
-export const fetch{{Feature}}sMock = async (
+export const fetch{{FeaturePlural}}Mock = async (
   filter: ListingFilter
 ): Promise<FetchResponse<{{Feature}}Row>> => {
   await new Promise((resolve) => setTimeout(resolve, 600))
@@ -488,7 +489,7 @@ export const delete{{Feature}}Mock = async (id: number): Promise<void> => {
   allMocks = allMocks.filter((item) => item.id !== id)
 }
 `,
-    { Feature, feature, kebab }
+    { Feature, feature, kebab, featurePlural, FeaturePlural }
   )
 }
 
@@ -615,14 +616,14 @@ export function {{Feature}}MainContainer({ data, onEdit }: Props) {
   )
 }
 
-function tplListingPage({ Feature, feature, kebab }) {
+function tplListingPage({ Feature, feature, kebab, featurePlural, FeaturePlural }) {
   return sub(
     `// src/modules/{{kebab}}/{{Feature}}ListingPage.tsx
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Trash2, FileSearch, PlusCircle } from 'lucide-react'
-import { use{{Feature}}s } from './hooks/use{{Feature}}'
+import { use{{FeaturePlural}} } from './hooks/use{{FeaturePlural}}'
 import { use{{Feature}}Create } from './hooks/use{{Feature}}Create'
 import { ListingTable } from '@/shared/components/base/ListingTable'
 import { ConfirmDialog } from '@/shared/components/base/ConfirmDialog'
@@ -649,7 +650,7 @@ export default function {{Feature}}ListingPage() {
     isDeleting,
     promptDelete,
     executeDelete,
-  } = use{{Feature}}s()
+  } = use{{FeaturePlural}}()
 
   const { isFormOpened, isSubmitting, openForm, closeForm, handleSubmit } =
     use{{Feature}}Create(reload)
@@ -735,7 +736,7 @@ export default function {{Feature}}ListingPage() {
   )
 }
 `,
-    { Feature, feature, kebab }
+    { Feature, feature, kebab, featurePlural, FeaturePlural }
   )
 }
 
@@ -912,51 +913,68 @@ function tplI18nListing({ Feature, feature, kebab }) {
   )
 }
 
-function buildDetailBlock(feature, Feature, ptLabel, enLabel, esLabel) {
-  return {
-    breadcrumb: ptLabel,
-    edit: 'Editar',
-    backToList: 'Voltar à lista',
-    sections: { main: 'Dados Gerais' },
-    fields: { id: 'ID', name: 'Nome', createdAt: 'Criado em', updatedAt: 'Atualizado em' },
-  }
+function tplI18nDetail({ Feature, feature }) {
+  return (
+    JSON.stringify(
+      {
+        'pt-BR': {
+          [`${feature}Detail`]: {
+            breadcrumb: `Detalhes de ${Feature}`,
+            edit: 'Editar',
+            backToList: 'Voltar à lista',
+            sections: { main: 'Dados Gerais' },
+            fields: { id: 'ID', name: 'Nome', createdAt: 'Criado em', updatedAt: 'Atualizado em' },
+          },
+        },
+        'en-US': {
+          [`${feature}Detail`]: {
+            breadcrumb: `${Feature} Details`,
+            edit: 'Edit',
+            backToList: 'Back to list',
+            sections: { main: 'General Data' },
+            fields: { id: 'ID', name: 'Name', createdAt: 'Created at', updatedAt: 'Updated at' },
+          },
+        },
+        'es-ES': {
+          [`${feature}Detail`]: {
+            breadcrumb: `Detalles de ${Feature}`,
+            edit: 'Editar',
+            backToList: 'Volver a la lista',
+            sections: { main: 'Datos Generales' },
+            fields: { id: 'ID', name: 'Nombre', createdAt: 'Creado en', updatedAt: 'Actualizado en' },
+          },
+        },
+      },
+      null,
+      2
+    ) + '\n'
+  )
 }
 
-// ── i18n common.json patch ──────────────────────────────────────────────────
+// ── i18n/index.ts patch ─────────────────────────────────────────────────────
 
-async function patchCommonJson(feature, Feature, commonJsonPath) {
-  const raw = await readFile(commonJsonPath, 'utf-8')
-  const json = JSON.parse(raw)
+async function patchI18n(feature, kebab, i18nPath) {
+  let content = await readFile(i18nPath, 'utf-8')
 
-  const detailKey = `${feature}Detail`
+  const detailImport = `import ${feature}Detail from '@/mock/languages/${kebab}/${kebab}-detail.json'`
+  const listingImport = `import ${feature}Listing from '@/mock/languages/${kebab}/${kebab}-listing.json'`
 
-  const ptDetail = {
-    breadcrumb: `Detalhes de ${Feature}`,
-    edit: 'Editar',
-    backToList: 'Voltar à lista',
-    sections: { main: 'Dados Gerais' },
-    fields: { id: 'ID', name: 'Nome', createdAt: 'Criado em', updatedAt: 'Atualizado em' },
-  }
-  const enDetail = {
-    breadcrumb: `${Feature} Details`,
-    edit: 'Edit',
-    backToList: 'Back to list',
-    sections: { main: 'General Data' },
-    fields: { id: 'ID', name: 'Name', createdAt: 'Created at', updatedAt: 'Updated at' },
-  }
-  const esDetail = {
-    breadcrumb: `Detalles de ${Feature}`,
-    edit: 'Editar',
-    backToList: 'Volver a la lista',
-    sections: { main: 'Datos Generales' },
-    fields: { id: 'ID', name: 'Nombre', createdAt: 'Creado en', updatedAt: 'Actualizado en' },
+  if (content.includes(listingImport)) {
+    return { patched: false, reason: 'imports already present' }
   }
 
-  json['pt-BR'][detailKey] = ptDetail
-  json['en-US'][detailKey] = enDetail
-  json['es-ES'][detailKey] = esDetail
+  content = content.replace(
+    `import menu from`,
+    `${detailImport}\n${listingImport}\nimport menu from`
+  )
 
-  await writeFile(commonJsonPath, JSON.stringify(json, null, 2) + '\n', 'utf-8')
+  content = content.replace(
+    `  ...menu[lang as keyof typeof menu],`,
+    `  ...${feature}Detail[lang as keyof typeof ${feature}Detail],\n  ...${feature}Listing[lang as keyof typeof ${feature}Listing],\n  ...menu[lang as keyof typeof menu],`
+  )
+
+  await writeFile(i18nPath, content, 'utf-8')
+  return { patched: true }
 }
 
 // ── Router patch ────────────────────────────────────────────────────────────
@@ -1029,7 +1047,9 @@ async function createModule(name) {
   const feature = toCamel(kebab)
   const Feature = toPascal(kebab)
   const apiSlug = toPlural(kebab)
-  const vars = { Feature, feature, kebab, apiSlug }
+  const featurePlural = feature.endsWith('s') ? feature : feature + 's'
+  const FeaturePlural = Feature.endsWith('s') ? Feature : Feature + 's'
+  const vars = { Feature, feature, kebab, apiSlug, featurePlural, FeaturePlural }
 
   console.log(
     `\n${C.bold('Atlas')} ${C.cyan('create module')} ${C.bold(name)}\n` +
@@ -1064,7 +1084,7 @@ async function createModule(name) {
     { path: join(modulePath, 'types', `${kebab}.type.ts`), content: tplType(vars) },
     { path: join(modulePath, 'schemas', `${kebab}.schema.ts`), content: tplSchema(vars) },
     { path: join(modulePath, 'services', `${kebab}.service.ts`), content: tplService(vars) },
-    { path: join(modulePath, 'hooks', `use${Feature}.ts`), content: tplHookListing(vars) },
+    { path: join(modulePath, 'hooks', `use${FeaturePlural}.ts`), content: tplHookListing(vars) },
     { path: join(modulePath, 'hooks', `use${Feature}Create.ts`), content: tplHookCreate(vars) },
     { path: join(modulePath, 'hooks', `use${Feature}Edit.ts`), content: tplHookEdit(vars) },
     { path: join(modulePath, 'hooks', `use${Feature}Detail.ts`), content: tplHookDetail(vars) },
@@ -1097,17 +1117,25 @@ async function createModule(name) {
     log.created(path)
   }
 
-  // ── i18n: listing file ────────────────────────────────────────────────────
+  // ── i18n: listing + detail files ─────────────────────────────────────────
   log.section('Generating i18n files')
 
   const listingJsonPath = join('src', 'mock', 'languages', kebab, `${kebab}-listing.json`)
   await writeFile(listingJsonPath, tplI18nListing(vars) + '\n', 'utf-8')
   log.created(listingJsonPath)
 
-  // ── i18n: patch common.json ───────────────────────────────────────────────
-  const commonJsonPath = join('src', 'mock', 'languages', 'common.json')
-  await patchCommonJson(feature, Feature, commonJsonPath)
-  log.patched(commonJsonPath)
+  const detailJsonPath = join('src', 'mock', 'languages', kebab, `${kebab}-detail.json`)
+  await writeFile(detailJsonPath, tplI18nDetail(vars), 'utf-8')
+  log.created(detailJsonPath)
+
+  // ── i18n: patch index.ts ──────────────────────────────────────────────────
+  const i18nPath = join('src', 'core', 'i18n', 'index.ts')
+  const i18nResult = await patchI18n(feature, kebab, i18nPath)
+  if (i18nResult.patched) {
+    log.patched(i18nPath)
+  } else {
+    log.warn(`i18n not patched automatically: ${i18nResult.reason}`)
+  }
 
   // ── Router: auto-patch ────────────────────────────────────────────────────
   log.section('Patching router')
@@ -1148,7 +1176,8 @@ async function createModule(name) {
         `  2. Update the route path in the router if needed (current: /${kebab})\n` +
         `  3. Add menu.${feature} key to src/mock/languages/menu/menu.json\n` +
         `  4. Fill in custom fields in types, schemas, forms, and containers\n` +
-        `  5. Run: npm run dev`
+        `  5. Adjust i18n keys in src/mock/languages/${kebab}/${kebab}-detail.json and ${kebab}-listing.json\n` +
+        `  6. Run: npm run dev`
     )
   )
 }
