@@ -1208,6 +1208,9 @@ Os 14 arquivos a seguir, em ordem de dependência, formam o mínimo viável para
 // src/modules/<feature>/types/<feature>.type.ts
 
 // Shape bruta da API (resposta do endpoint de listagem)
+// Se o recurso tem um campo primário diferente de `name` (ex: acronym, code, ip),
+// declare-o aqui como o campo de identificação principal. Esse mesmo campo deve
+// ser usado como breadcrumb em use<Feature>Detail (setTitle(data.<campo>)).
 export interface Api<Feature> {
   id: number
   name: string           // use `string | null` se a coluna for nullable no banco
@@ -1517,6 +1520,15 @@ export function use<Feature>Detail(id: number) {
   const abortRef = useRef<AbortController | null>(null)
 
   const load = useCallback(async () => {
+    // Rejeita IDs inválidos antes de emitir qualquer requisição.
+    // Number(undefined) e Number('abc') produzem NaN — sem esse guard
+    // o hook emitiria GET /<endpoint>/NaN para a API.
+    if (!Number.isInteger(id) || id <= 0) {
+      setIsLoading(false)
+      setError('invalid_id')
+      return
+    }
+
     abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
@@ -1528,7 +1540,10 @@ export function use<Feature>Detail(id: number) {
       if (!controller.signal.aborted) setData(raw)
     } catch (e) {
       if (!controller.signal.aborted) {
-        setError(e instanceof Error ? e.message : 'Erro ao carregar registro')
+        // Nunca exponha e.message na UI — a mensagem é controlada pela API.
+        // Logue para diagnóstico e armazene apenas um sentinel.
+        console.error('[use<Feature>Detail]', e)
+        setError('fetch_failed')
       }
     } finally {
       if (!controller.signal.aborted) setIsLoading(false)
@@ -1770,14 +1785,21 @@ import { <Feature>Related<Xxx>Container } from './containers/<Feature>Related<Xx
 <<Feature>Related<Xxx>Container items={data.related_items} />
 ```
 
-**No `common.json`**, adicione a chave de seção:
+**No arquivo `<feature>-detail.json`**, adicione a chave da seção relacionada em todos os 3 locales:
 
 ```jsonc
-"<feature>Detail": {
-  "sections": {
-    "main": "Dados Gerais",
-    "<xxx>": "Itens Relacionados"
-  }
+// src/mock/languages/<feature>/<feature>-detail.json
+{
+  "pt-BR": {
+    "<feature>Detail": {
+      "sections": {
+        "main": "Dados Gerais",
+        "<xxx>": "Itens Relacionados", // ← adicione aqui
+      },
+    },
+  },
+  "en-US": { "<feature>Detail": { "sections": { "<xxx>": "Related Items" } } },
+  "es-ES": { "<feature>Detail": { "sections": { "<xxx>": "Elementos Relacionados" } } },
 }
 ```
 
@@ -1925,8 +1947,11 @@ export default function <Feature>DetailPage() {
   const clearTitle = useBreadcrumbStore((s) => s.clearTitle)
 
   useEffect(() => {
-    // Se `data.name` for `string | null`, use um campo sempre não-nulo como breadcrumb
-    // (ex: setTitle(data.acronym)) ou aplique: setTitle(data.name ?? String(data.id))
+    // Identifique o campo primário não-nulo do recurso e use-o como breadcrumb.
+    // - Se `name` nunca é null: setTitle(data.name)
+    // - Se `name` é string | null e existe um campo obrigatório alternativo (ex: acronym, code, ip):
+    //   setTitle(data.acronym)
+    // - Se não há alternativa: setTitle(data.name ?? String(data.id))
     if (data) setTitle(data.name)
     return () => clearTitle()
   }, [data, setTitle, clearTitle])
@@ -1942,7 +1967,9 @@ export default function <Feature>DetailPage() {
   if (error || !data) {
     return (
       <div className="flex flex-col items-center gap-4 py-16">
-        <span className="text-sm text-destructive">{error ?? t('common.errorMessage')}</span>
+        {/* Nunca renderize `error` diretamente — o valor é um sentinel interno do hook,
+            não uma mensagem para o usuário. Use sempre a chave i18n. */}
+        <span className="text-sm text-destructive">{t('common.errorMessage')}</span>
         <Button variant="ghost" size="sm" onClick={() => navigate('/<rota>')}>
           {t('<feature>Detail.backToList')}
         </Button>
@@ -2048,3 +2075,4 @@ Antes de abrir PR, confirme:
 - [ ] `src/mock/languages/<kebab>/<kebab>-listing.json` — chaves de listagem e formulários criadas
 - [ ] `src/mock/languages/<kebab>/<kebab>-detail.json` — chaves de detalhe criadas
 - [ ] Ambos importados e spreados em `src/core/i18n/index.ts`
+- [ ] Chave `menu.<feature>` adicionada em `src/mock/languages/menu/menu.json` (pt-BR, en-US, es-ES)
