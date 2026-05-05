@@ -45,7 +45,7 @@ export default function IndicationDetailPage() {
   if (error || !data) {
     return (
       <div className="flex flex-col items-center gap-4 py-16">
-        <span className="text-sm text-destructive">{error ?? t('common.errorMessage')}</span>
+        <span className="text-sm text-destructive">{t('common.errorMessage')}</span>
         <Button variant="ghost" size="sm" onClick={() => navigate('/indicacao-geografica')}>
           {t('indicationDetail.backToList')}
         </Button>

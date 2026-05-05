@@ -6,6 +6,7 @@
       "companies": "Empresas",
       "segmentation": "Segmentação de loja",
       "tourism": "Turismo",
+      "organization": "Organizações",
       "help": "Ajuda"
     }
   },
@@ -16,6 +17,7 @@
       "indication": "Geographical Indications",
       "segmentation": "Store Segmentation",
       "tourism": "Tourism",
+      "organization": "Organizations",
       "help": "Help"
     }
   },
@@ -26,6 +28,7 @@
       "indication": "Indicaciones Geográficas",
       "segmentation": "Segmentación de Tienda",
       "tourism": "Turismo",
+      "organization": "Organizaciones",
       "help": "Ayuda"
     }
   }

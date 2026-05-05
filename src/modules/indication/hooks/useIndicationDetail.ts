@@ -10,6 +10,12 @@ export function useIndicationDetail(id: number) {
   const abortRef = useRef<AbortController | null>(null)
 
   const load = useCallback(async () => {
+    if (!Number.isInteger(id) || id <= 0) {
+      setIsLoading(false)
+      setError('invalid_id')
+      return
+    }
+
     abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
@@ -23,7 +29,8 @@ export function useIndicationDetail(id: number) {
       }
     } catch (e) {
       if (!controller.signal.aborted) {
-        setError(e instanceof Error ? e.message : 'Erro ao carregar indicação')
+        console.error('[useIndicationDetail]', e)
+        setError('fetch_failed')
       }
     } finally {
       if (!controller.signal.aborted) {

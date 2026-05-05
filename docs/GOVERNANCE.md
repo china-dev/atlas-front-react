@@ -34,7 +34,7 @@ VITE_API_URL=http://localhost:8000/api
 
 ### Atlas CLI — gerador de módulos
 
-O projeto inclui um scaffolder de linha de comando que gera todos os 14 arquivos de boilerplate de um módulo CRUD, cria os arquivos i18n correspondentes, e registra a rota automaticamente.
+O projeto inclui um scaffolder de linha de comando que gera todos os 13 arquivos de boilerplate de um módulo CRUD, cria os arquivos i18n correspondentes, e registra a rota automaticamente.
 
 ```bash
 npm run atlas -- create module <nome>
@@ -50,7 +50,7 @@ npm run atlas -- create module product-category
 
 **O que é gerado:**
 
-- `src/modules/<kebab>/` — árvore completa do módulo (14 arquivos)
+- `src/modules/<kebab>/` — árvore completa do módulo (13 arquivos)
 - `src/mock/languages/<kebab>/<kebab>-listing.json` — chaves i18n de listagem (pt-BR, en-US, es-ES)
 - `src/mock/languages/<kebab>/<kebab>-detail.json` — chaves i18n de detalhe (pt-BR, en-US, es-ES)
 - Patch em `src/core/i18n/index.ts` — imports e spreads de listing + detail
@@ -147,8 +147,7 @@ src/modules/<feature>/
 │   ├── use<Feature>Create.ts
 │   ├── use<Feature>Edit.ts
 │   ├── use<Feature>Detail.ts
-│   ├── use<Feature>FormOptions.ts
-│   └── __mocks__/use<Feature>Mock.ts
+│   └── use<Feature>FormOptions.ts
 ├── components/
 │   ├── <Feature>CreateForm.tsx
 │   └── <Feature>EditForm.tsx
@@ -1198,7 +1197,7 @@ name: z.string().max(200, t('...')).optional(),          // opcional + limite
 
 ## 5. Boilerplate
 
-Os 14 arquivos a seguir, em ordem de dependência, formam o mínimo viável para um módulo CRUD completo. Substitua `<Feature>` / `<feature>` pelo nome do seu domínio (ex: `Product` / `product`).
+Os 13 arquivos a seguir, em ordem de dependência, formam o mínimo viável para um módulo CRUD completo. Substitua `<Feature>` / `<feature>` pelo nome do seu domínio (ex: `Product` / `product`).
 
 ---
 
@@ -2005,53 +2004,6 @@ export default function <Feature>DetailPage() {
 
 ---
 
-### Arquivo 14 — `__mocks__/use<Feature>Mock.ts`
-
-```ts
-// src/modules/<feature>/hooks/__mocks__/use<Feature>Mock.ts
-import type { <Feature>Row } from '../../types/<feature>.type'
-import type { FetchResponse, ListingFilter } from '@/shared/hooks/useListing'
-
-const baseMock: <Feature>Row = {
-  id: 1,
-  name: 'Registro de Exemplo',
-  createdAt: '01/01/2026',
-}
-
-let allMocks: <Feature>Row[] = Array.from({ length: 20 }).map((_, i) => ({
-  ...baseMock,
-  id: i + 1,
-  name: `Registro ${i + 1}`,
-}))
-
-export const fetch<Feature>sMock = async (
-  filter: ListingFilter
-): Promise<FetchResponse<<Feature>Row>> => {
-  await new Promise((resolve) => setTimeout(resolve, 600))
-  const page = filter.page ?? 1
-  const limit = filter.limit ?? 10
-  const search = (filter.search ?? '').toLowerCase()
-  const filtered = allMocks.filter((item) => item.name.toLowerCase().includes(search))
-  const paged = filtered.slice((page - 1) * limit, page * limit)
-  return {
-    data: paged,
-    meta: {
-      currentPage: page,
-      totalPages: Math.ceil(filtered.length / limit),
-      totalItems: filtered.length,
-      itemsPerPage: limit,
-    },
-  }
-}
-
-export const delete<Feature>Mock = async (id: number): Promise<void> => {
-  await new Promise((resolve) => setTimeout(resolve, 400))
-  allMocks = allMocks.filter((item) => item.id !== id)
-}
-```
-
----
-
 ### Checklist de entrega de um novo módulo
 
 Antes de abrir PR, confirme:
@@ -2064,7 +2016,6 @@ Antes de abrir PR, confirme:
 - [ ] `hooks/use<Feature>Edit.ts` — abertura com `editTarget` + submit
 - [ ] `hooks/use<Feature>Detail.ts` — fetch por ID com `AbortController`
 - [ ] `hooks/use<Feature>FormOptions.ts` — opções de select com `AbortController` _(omitir se o módulo não tem selects dependentes)_
-- [ ] `hooks/__mocks__/use<Feature>Mock.ts` — dados de mock para desenvolvimento offline
 - [ ] `components/<Feature>CreateForm.tsx` — RHF + Zod, `id` prop para `FormDialog`
 - [ ] `components/<Feature>EditForm.tsx` — `initialData` prop, `defaultValues` preenchidos
 - [ ] `containers/<Feature>MainContainer.tsx` — sem estado, recebe `data` por prop

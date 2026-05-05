@@ -331,6 +331,7 @@ export function use{{Feature}}Edit(onSuccess?: () => void) {
 
   const closeForm = useCallback(() => {
     setIsFormOpened(false)
+    // editTarget mantido até o próximo openForm para a animação de saída do Radix terminar
   }, [])
 
   const handleSubmit = useCallback(
@@ -373,6 +374,15 @@ export function use{{Feature}}Detail(id: number) {
   const abortRef = useRef<AbortController | null>(null)
 
   const load = useCallback(async () => {
+    // Rejeita IDs inválidos antes de emitir qualquer requisição.
+    // Number(undefined) e Number('abc') produzem NaN — sem esse guard
+    // o hook emitiria GET /<endpoint>/NaN para a API.
+    if (!Number.isInteger(id) || id <= 0) {
+      setIsLoading(false)
+      setError('invalid_id')
+      return
+    }
+
     abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
@@ -384,7 +394,10 @@ export function use{{Feature}}Detail(id: number) {
       if (!controller.signal.aborted) setData(raw)
     } catch (e) {
       if (!controller.signal.aborted) {
-        setError(e instanceof Error ? e.message : 'Erro ao carregar registro')
+        // Nunca exponha e.message na UI — a mensagem é controlada pela API.
+        // Logue para diagnóstico e armazene apenas um sentinel.
+        console.error('[use{{Feature}}Detail]', e)
+        setError('fetch_failed')
       }
     } finally {
       if (!controller.signal.aborted) setIsLoading(false)
@@ -416,7 +429,7 @@ export interface SelectOption {
 // TODO: import fetch functions from '../services/{{kebab}}.service' as needed
 export function use{{Feature}}FormOptions() {
   const [options, setOptions] = useState<SelectOption[]>([])
-  const [isLoadingOptions, setIsLoadingOptions] = useState(false)
+  const [isLoadingOptions, setIsLoadingOptions] = useState(true)
   const [optionsError, setOptionsError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -446,52 +459,6 @@ export function use{{Feature}}FormOptions() {
   )
 }
 
-function tplHookMock({ Feature, feature, kebab, featurePlural, FeaturePlural }) {
-  return sub(
-    `// src/modules/{{kebab}}/hooks/__mocks__/use{{Feature}}Mock.ts
-import type { {{Feature}}Row } from '../../types/{{kebab}}.type'
-import type { FetchResponse, ListingFilter } from '@/shared/hooks/useListing'
-
-const baseMock: {{Feature}}Row = {
-  id: 1,
-  name: 'Registro de Exemplo',
-  createdAt: '01/01/2026',
-}
-
-let allMocks: {{Feature}}Row[] = Array.from({ length: 20 }).map((_, i) => ({
-  ...baseMock,
-  id: i + 1,
-  name: \`Registro \${i + 1}\`,
-}))
-
-export const fetch{{FeaturePlural}}Mock = async (
-  filter: ListingFilter
-): Promise<FetchResponse<{{Feature}}Row>> => {
-  await new Promise((resolve) => setTimeout(resolve, 600))
-  const page = filter.page ?? 1
-  const limit = filter.limit ?? 10
-  const search = (filter.search ?? '').toLowerCase()
-  const filtered = allMocks.filter((item) => item.name.toLowerCase().includes(search))
-  const paged = filtered.slice((page - 1) * limit, page * limit)
-  return {
-    data: paged,
-    meta: {
-      currentPage: page,
-      totalPages: Math.ceil(filtered.length / limit),
-      totalItems: filtered.length,
-      itemsPerPage: limit,
-    },
-  }
-}
-
-export const delete{{Feature}}Mock = async (id: number): Promise<void> => {
-  await new Promise((resolve) => setTimeout(resolve, 400))
-  allMocks = allMocks.filter((item) => item.id !== id)
-}
-`,
-    { Feature, feature, kebab, featurePlural, FeaturePlural }
-  )
-}
 
 function tplCreateForm({ Feature, feature, kebab }) {
   return sub(
@@ -768,6 +735,11 @@ export default function {{Feature}}DetailPage() {
   const clearTitle = useBreadcrumbStore((s) => s.clearTitle)
 
   useEffect(() => {
+    // Identifique o campo primário não-nulo do recurso e use-o como breadcrumb.
+    // - Se "name" nunca é null: setTitle(data.name)
+    // - Se "name" é string | null e existe campo alternativo (ex: acronym, code, ip):
+    //   setTitle(data.acronym)
+    // - Se não há alternativa: setTitle(data.name ?? String(data.id))
     if (data) setTitle(data.name)
     return () => clearTitle()
   }, [data, setTitle, clearTitle])
@@ -783,7 +755,9 @@ export default function {{Feature}}DetailPage() {
   if (error || !data) {
     return (
       <div className="flex flex-col items-center gap-4 py-16">
-        <span className="text-sm text-destructive">{error ?? t('common.errorMessage')}</span>
+        {/* Nunca renderize \`error\` diretamente — o valor é um sentinel interno do hook,
+            não uma mensagem para o usuário. Use sempre a chave i18n. */}
+        <span className="text-sm text-destructive">{t('common.errorMessage')}</span>
         <Button variant="ghost" size="sm" onClick={() => navigate('/{{kebab}}')}>
           {t('{{feature}}Detail.backToList')}
         </Button>
@@ -1072,12 +1046,12 @@ async function createModule(name) {
   await mkdir(join(modulePath, 'types'), { recursive: true })
   await mkdir(join(modulePath, 'schemas'), { recursive: true })
   await mkdir(join(modulePath, 'services'), { recursive: true })
-  await mkdir(join(modulePath, 'hooks', '__mocks__'), { recursive: true })
+  await mkdir(join(modulePath, 'hooks'), { recursive: true })
   await mkdir(join(modulePath, 'components'), { recursive: true })
   await mkdir(join(modulePath, 'containers'), { recursive: true })
   await mkdir(join('src', 'mock', 'languages', kebab), { recursive: true })
 
-  // ── Write 14 source files ─────────────────────────────────────────────────
+  // ── Write 13 source files ─────────────────────────────────────────────────
   log.section('Generating module files')
 
   const files = [
@@ -1091,10 +1065,6 @@ async function createModule(name) {
     {
       path: join(modulePath, 'hooks', `use${Feature}FormOptions.ts`),
       content: tplHookFormOptions(vars),
-    },
-    {
-      path: join(modulePath, 'hooks', '__mocks__', `use${Feature}Mock.ts`),
-      content: tplHookMock(vars),
     },
     {
       path: join(modulePath, 'components', `${Feature}CreateForm.tsx`),
