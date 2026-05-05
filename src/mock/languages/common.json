@@ -45,40 +45,6 @@
           "logout": "Sair"
         }
       }
-    },
-    "indicationDetail": {
-      "breadcrumb": "Detalhes da Indicação",
-      "edit": "Editar",
-      "backToList": "Voltar à lista",
-      "sections": {
-        "main": "Dados Gerais",
-        "location": "Localização",
-        "organization": "Organização",
-        "media": "Mídia",
-        "audit": "Auditoria"
-      },
-      "fields": {
-        "name": "Nome",
-        "registrationCode": "Código de Registro",
-        "status": "Status",
-        "id": "ID",
-        "uuid": "UUID interno",
-        "city": "Cidade",
-        "state": "Estado",
-        "country": "País",
-        "zipCode": "CEP",
-        "coordinates": "Coordenadas",
-        "organizationName": "Organização",
-        "image": "Imagem",
-        "ip": "Tipo de IP",
-        "grantDate": "Data de Concessão",
-        "createdAt": "Criado em",
-        "updatedAt": "Atualizado em",
-        "uf": "UF",
-        "auditLogs": "Logs de Auditoria",
-        "active": "Ativo",
-        "inactive": "Inativo"
-      }
     }
   },
   "en-US": {
@@ -127,40 +93,6 @@
           "logout": "Logout"
         }
       }
-    },
-    "indicationDetail": {
-      "breadcrumb": "Indication Details",
-      "edit": "Edit",
-      "backToList": "Back to list",
-      "sections": {
-        "main": "General Data",
-        "location": "Location",
-        "organization": "Organization",
-        "media": "Media",
-        "audit": "Audit"
-      },
-      "fields": {
-        "name": "Name",
-        "registrationCode": "Registration Code",
-        "status": "Status",
-        "id": "ID",
-        "uuid": "Internal UUID",
-        "city": "City",
-        "state": "State",
-        "country": "Country",
-        "zipCode": "Zip Code",
-        "coordinates": "Coordinates",
-        "organizationName": "Organization",
-        "image": "Image",
-        "ip": "IP Type",
-        "grantDate": "Grant Date",
-        "createdAt": "Created at",
-        "updatedAt": "Updated at",
-        "uf": "UF",
-        "auditLogs": "Audit Logs",
-        "active": "Active",
-        "inactive": "Inactive"
-      }
     }
   },
   "es-ES": {
@@ -208,40 +140,6 @@
           "name": "Admin",
           "logout": "Cerrar sesión"
         }
-      }
-    },
-    "indicationDetail": {
-      "breadcrumb": "Detalles de la Indicación",
-      "edit": "Editar",
-      "backToList": "Volver a la lista",
-      "sections": {
-        "main": "Datos Generales",
-        "location": "Localización",
-        "organization": "Organización",
-        "media": "Medios",
-        "audit": "Auditoría"
-      },
-      "fields": {
-        "name": "Nombre",
-        "registrationCode": "Código de Registro",
-        "status": "Estado",
-        "id": "ID",
-        "uuid": "UUID interno",
-        "city": "Ciudad",
-        "state": "Estado",
-        "country": "País",
-        "zipCode": "Código Postal",
-        "coordinates": "Coordenadas",
-        "organizationName": "Organización",
-        "image": "Imagen",
-        "ip": "Tipo de IP",
-        "grantDate": "Fecha de Concesión",
-        "createdAt": "Creado en",
-        "updatedAt": "Actualizado en",
-        "uf": "UF",
-        "auditLogs": "Registros de Auditoría",
-        "active": "Activo",
-        "inactive": "Inactivo"
       }
     }
   }

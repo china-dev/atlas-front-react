@@ -32,6 +32,37 @@ VITE_API_URL=http://localhost:8000/api
 | `npm run lint`   | Executa o ESLint em todo o projeto                |
 | `npm run format` | Formata o código com Prettier                     |
 
+### Atlas CLI — gerador de módulos
+
+O projeto inclui um scaffolder de linha de comando que gera todos os 13 arquivos de boilerplate de um módulo CRUD, cria os arquivos i18n correspondentes, e registra a rota automaticamente.
+
+```bash
+npm run atlas -- create module <nome>
+```
+
+**Exemplos:**
+
+```bash
+npm run atlas -- create module product
+npm run atlas -- create module productCategory
+npm run atlas -- create module product-category
+```
+
+**O que é gerado:**
+
+- `src/modules/<kebab>/` — árvore completa do módulo (13 arquivos)
+- `src/mock/languages/<kebab>/<kebab>-listing.json` — chaves i18n de listagem (pt-BR, en-US, es-ES)
+- `src/mock/languages/<kebab>/<kebab>-detail.json` — chaves i18n de detalhe (pt-BR, en-US, es-ES)
+- Patch em `src/core/i18n/index.ts` — imports e spreads de listing + detail
+- Patch em `src/core/router/index.tsx` — imports e rota aninhada com listing + detail
+
+**Pós-geração — checklist manual:**
+
+1. Revisar o endpoint da API em `services/<kebab>.service.ts` (gerado como `/<kebab-plural>`)
+2. Ajustar o `path` da rota no router se necessário (gerado como `/<kebab>`)
+3. Adicionar a chave `menu.<feature>` em `src/mock/languages/menu/menu.json`
+4. Preencher campos customizados em types, schemas, forms e containers
+
 ### Desenvolvimento sem backend de autenticação
 
 O backend ainda não expõe o endpoint `POST /auth/login`. Para acessar a aplicação em ambiente de desenvolvimento sem autenticar:
@@ -102,6 +133,8 @@ graph TD
 
 #### 1. Estrutura de diretórios
 
+> **Regra de nomenclatura:** use sempre o **singular** do domínio como nome do módulo — `organization`, não `organizations`; `product`, não `products`. O CLI e todos os sufixos (tipo, função, arquivo) derivam desse singular. Nomes plurais causam duplicações (`useOrganizationss`, `ApiOrganizations`) e tipos semanticamente errados (uma `interface` representa uma instância, não uma coleção).
+
 ```
 src/modules/<feature>/
 ├── <Feature>ListingPage.tsx
@@ -114,8 +147,7 @@ src/modules/<feature>/
 │   ├── use<Feature>Create.ts
 │   ├── use<Feature>Edit.ts
 │   ├── use<Feature>Detail.ts
-│   ├── use<Feature>FormOptions.ts
-│   └── __mocks__/use<Feature>Mock.ts
+│   └── use<Feature>FormOptions.ts
 ├── components/
 │   ├── <Feature>CreateForm.tsx
 │   └── <Feature>EditForm.tsx
@@ -148,13 +180,15 @@ Edite `src/core/router/index.tsx` e adicione as rotas dentro do bloco `Protected
 
 #### 3. Registrar traduções i18n
 
-Crie o JSON de traduções em `src/mock/languages/<feature>/<feature>-listing.json` com os três locales (`pt-BR`, `en-US`, `es-ES`). Em seguida, registre o namespace em `src/core/i18n/index.ts`:
+O CLI gera e registra os dois arquivos automaticamente. Para módulos criados manualmente, crie os JSONs em `src/mock/languages/<feature>/` e registre ambos em `src/core/i18n/index.ts`:
 
 ```ts
+import myModuleDetail from '@/mock/languages/my-module/my-module-detail.json'
 import myModuleListing from '@/mock/languages/my-module/my-module-listing.json'
 
 const mergeTranslations = (lang: string) => ({
   // ... namespaces existentes ...
+  ...myModuleDetail[lang as keyof typeof myModuleDetail],
   ...myModuleListing[lang as keyof typeof myModuleListing],
 })
 ```
@@ -176,10 +210,10 @@ function MeuComponente() {
 
 **Estrutura do arquivo de traduções**
 
-As traduções são divididas em dois arquivos:
+As traduções de cada feature são divididas em dois arquivos dedicados:
 
 - **`src/mock/languages/<feature>/<feature>-listing.json`** — chaves de listagem e formulários do feature
-- **`src/mock/languages/common.json`** — chaves de detalhe e globais (adicione aqui a seção `<feature>Detail`)
+- **`src/mock/languages/<feature>/<feature>-detail.json`** — chaves de detalhe do feature
 
 Conteúdo de `<feature>-listing.json`:
 
@@ -217,19 +251,23 @@ Conteúdo de `<feature>-listing.json`:
 }
 ```
 
-Em `src/mock/languages/common.json`, adicione dentro de cada locale a seção de detalhe:
+Conteúdo de `<feature>-detail.json`:
 
 ```jsonc
 {
   "pt-BR": {
-    "common": {
-      /* ... keys existentes ... */
-    },
     "<feature>Detail": {
+      "breadcrumb": "Detalhes de <Feature>",
       "backToList": "Voltar à lista",
       "sections": { "main": "Dados Gerais" },
       "fields": { "id": "ID", "name": "Nome" },
     },
+  },
+  "en-US": {
+    /* mesma estrutura em inglês */
+  },
+  "es-ES": {
+    /* mesma estrutura em espanhol */
   },
 }
 ```
@@ -1131,11 +1169,35 @@ import { DetailContainer, DetailField } from '@/shared/components/base/DetailCon
   ```
 - **Sem arquivos `*.d.ts` globais** — tipos ficam nos arquivos de fonte. Tipos compartilhados entre módulos devem ir para `src/shared/hooks/useListing.ts` ou `src/core/store/language.store.ts` como referência de padrão.
 
+### Campos nullable da API
+
+Quando a coluna do banco permite `NULL`, declare o campo como `string | null` no type. No mapeamento do serviço, use o operador de coalescência para converter para `string` antes de atribuir ao tipo `Row`. Repita a conversão nos `defaultValues` do RHF para impedir que o input receba `null`:
+
+```ts
+// type:
+name: string | null
+
+// mapeamento no service (Row não aceita null):
+name: item.name ?? ''
+
+// defaultValues no EditForm:
+defaultValues: {
+  name: initialData.name ?? ''
+}
+```
+
+**Quando usar `.optional()` no schema Zod:** use apenas em campos que o usuário pode deixar em branco na UI. Um campo nullable no banco mas obrigatório na UI deve usar `.min(1, ...)`. Um campo nullable no banco e opcional na UI usa `.optional()`:
+
+```ts
+acronym: z.string().min(1, t('...')).max(50, t('...')), // obrigatório + limite
+name: z.string().max(200, t('...')).optional(),          // opcional + limite
+```
+
 ---
 
 ## 5. Boilerplate
 
-Os 14 arquivos a seguir, em ordem de dependência, formam o mínimo viável para um módulo CRUD completo. Substitua `<Feature>` / `<feature>` pelo nome do seu domínio (ex: `Product` / `product`).
+Os 13 arquivos a seguir, em ordem de dependência, formam o mínimo viável para um módulo CRUD completo. Substitua `<Feature>` / `<feature>` pelo nome do seu domínio (ex: `Product` / `product`).
 
 ---
 
@@ -1145,14 +1207,17 @@ Os 14 arquivos a seguir, em ordem de dependência, formam o mínimo viável para
 // src/modules/<feature>/types/<feature>.type.ts
 
 // Shape bruta da API (resposta do endpoint de listagem)
+// Se o recurso tem um campo primário diferente de `name` (ex: acronym, code, ip),
+// declare-o aqui como o campo de identificação principal. Esse mesmo campo deve
+// ser usado como breadcrumb em use<Feature>Detail (setTitle(data.<campo>)).
 export interface Api<Feature> {
   id: number
-  name: string
+  name: string           // use `string | null` se a coluna for nullable no banco
   created_at: string
   updated_at: string
 }
 
-// Shape usada na tabela de listagem
+// Shape usada na tabela de listagem (sem null — converta no service com ?? '')
 export interface <Feature>Row {
   id: number
   name: string
@@ -1162,10 +1227,14 @@ export interface <Feature>Row {
 // Shape completa retornada pelo endpoint de detalhe
 export interface Api<Feature>Detail {
   id: number
-  name: string
+  name: string           // use `string | null` se a coluna for nullable no banco
   created_at: string
   updated_at: string
 }
+
+// Para relações has-many no detalhe, declare um type de referência:
+// export interface <RelatedFeature>Ref { id: number; name: string }
+// e adicione ao ApiDetail: related: <RelatedFeature>Ref[]
 ```
 
 ---
@@ -1179,7 +1248,12 @@ import type { TFunction } from 'i18next'
 
 export function create<Feature>Schema(t: TFunction) {
   return z.object({
+    // Campo obrigatório simples:
     name: z.string().min(1, t('<feature>Listing.create.form.errors.name')),
+    // Campo obrigatório com limite de caracteres:
+    // acronym: z.string().min(1, t('...')).max(50, t('...')),
+    // Campo opcional com limite (nullable no banco, pode ficar vazio na UI):
+    // description: z.string().max(200, t('...')).optional(),
   })
 }
 
@@ -1264,6 +1338,18 @@ export async function delete<Feature>(id: number): Promise<void> {
   await httpRequest('DELETE', `/<api-endpoint>/${id}`)
 }
 ```
+
+> **Convenção de nomes das funções de serviço:** use plural para coleção e singular para instância — nunca repita o sufixo do Feature. Exemplo para o domínio `organization`:
+>
+> | Função                  | Descrição                          |
+> | ----------------------- | ---------------------------------- |
+> | `fetchOrganizations`    | GET /organizations (coleção)       |
+> | `fetchOrganizationById` | GET /organizations/:id (instância) |
+> | `createOrganization`    | POST /organizations                |
+> | `updateOrganization`    | PUT /organizations/:id             |
+> | `deleteOrganization`    | DELETE /organizations/:id          |
+>
+> Quando o nome do módulo já é singular (`organization`), o template `fetch<Feature>s` gera `fetchOrganizations` corretamente. Se o domínio for palavras irregulares, ajuste manualmente.
 
 ---
 
@@ -1433,6 +1519,15 @@ export function use<Feature>Detail(id: number) {
   const abortRef = useRef<AbortController | null>(null)
 
   const load = useCallback(async () => {
+    // Rejeita IDs inválidos antes de emitir qualquer requisição.
+    // Number(undefined) e Number('abc') produzem NaN — sem esse guard
+    // o hook emitiria GET /<endpoint>/NaN para a API.
+    if (!Number.isInteger(id) || id <= 0) {
+      setIsLoading(false)
+      setError('invalid_id')
+      return
+    }
+
     abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
@@ -1444,7 +1539,10 @@ export function use<Feature>Detail(id: number) {
       if (!controller.signal.aborted) setData(raw)
     } catch (e) {
       if (!controller.signal.aborted) {
-        setError(e instanceof Error ? e.message : 'Erro ao carregar registro')
+        // Nunca exponha e.message na UI — a mensagem é controlada pela API.
+        // Logue para diagnóstico e armazene apenas um sentinel.
+        console.error('[use<Feature>Detail]', e)
+        setError('fetch_failed')
       }
     } finally {
       if (!controller.signal.aborted) setIsLoading(false)
@@ -1504,6 +1602,8 @@ export function use<Feature>FormOptions() {
 
 O esqueleto acima retorna apenas um array de opções. Na prática, a maioria dos formulários precisa de múltiplos grupos — por exemplo, `indication` busca cidades E organizações em paralelo. Para cada grupo adicional, duplique o `useState`, o `fetchXxx` e o tratamento dentro do `useEffect`, usando `Promise.all` para disparar os fetches em paralelo. Exporte todos os arrays e seus estados de loading/error pelo objeto de retorno do hook.
 
+> **Quando omitir:** se o módulo não possui campos de select que dependem de dados externos (nenhum dropdown de cidade, organização, categoria etc.), delete o arquivo gerado e remova seu import dos formulários. O critério: existe algum `<Select>` no formulário cujas opções vêm de um endpoint? Se não, omita o hook.
+
 ---
 
 ### Arquivo 9 — `components/<Feature>CreateForm.tsx`
@@ -1543,6 +1643,9 @@ export function <Feature>CreateForm({ id, isSubmitting, onSubmit }: <Feature>Cre
         />
         {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
       </div>
+      {/* Para cada campo adicional, duplique o bloco acima com id e register distintos.
+          Campos opcionais (schema com .optional()) funcionam igual — apenas o erro
+          não será exibido se o campo não foi tocado. */}
     </form>
   )
 }
@@ -1575,6 +1678,8 @@ export function <Feature>EditForm({ id, isSubmitting, initialData, onSubmit }: <
   const schema = useMemo(() => update<Feature>Schema(t), [t])
   const { register, handleSubmit, formState: { errors } } = useForm<Update<Feature>SchemaValues>({
     resolver: zodResolver(schema),
+    // Se algum campo for string | null no ApiDetail, converta com ?? '' para evitar
+    // que o input receba null: defaultValues: { name: initialData.name ?? '' }
     defaultValues: { name: initialData.name },
   })
 
@@ -1616,6 +1721,84 @@ export function <Feature>MainContainer({ data, onEdit }: Props) {
       </div>
     </DetailContainer>
   )
+}
+```
+
+---
+
+### Arquivo 11b (opcional) — `containers/<Feature>Related<Xxx>Container.tsx`
+
+Use quando o endpoint de detalhe retorna uma relação has-many (ex: `geographical_indications: []`). Crie um container adicional além do `MainContainer`.
+
+**No type (`Api<Feature>Detail`):** adicione o campo de relação antes de criar o container:
+
+```ts
+export interface <RelatedFeature>Ref { id: number; name: string }
+
+export interface Api<Feature>Detail {
+  // ...campos escalares...
+  related_items: <RelatedFeature>Ref[]
+}
+```
+
+**O container:**
+
+```tsx
+// src/modules/<feature>/containers/<Feature>Related<Xxx>Container.tsx
+import { useTranslation } from 'react-i18next'
+import { DetailContainer } from '@/shared/components/base/DetailContainer'
+import type { <RelatedFeature>Ref } from '../types/<feature>.type'
+
+interface Props {
+  items: <RelatedFeature>Ref[]
+}
+
+export function <Feature>Related<Xxx>Container({ items }: Props) {
+  const { t } = useTranslation()
+
+  return (
+    <DetailContainer title={t('<feature>Detail.sections.<xxx>')}>
+      {items.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t('common.emptyListing')}</p>
+      ) : (
+        <ul className="divide-y divide-border">
+          {items.map((item) => (
+            <li key={item.id} className="py-2 text-sm">
+              <span className="font-medium">{item.name}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </DetailContainer>
+  )
+}
+```
+
+**Na DetailPage**, adicione o import e renderize abaixo do `MainContainer`:
+
+```tsx
+import { <Feature>Related<Xxx>Container } from './containers/<Feature>Related<Xxx>Container'
+
+// dentro do return:
+<<Feature>MainContainer data={data} onEdit={() => openForm(data)} />
+<<Feature>Related<Xxx>Container items={data.related_items} />
+```
+
+**No arquivo `<feature>-detail.json`**, adicione a chave da seção relacionada em todos os 3 locales:
+
+```jsonc
+// src/mock/languages/<feature>/<feature>-detail.json
+{
+  "pt-BR": {
+    "<feature>Detail": {
+      "sections": {
+        "main": "Dados Gerais",
+        "<xxx>": "Itens Relacionados", // ← adicione aqui
+      },
+    },
+  },
+  "en-US": { "<feature>Detail": { "sections": { "<xxx>": "Related Items" } } },
+  "es-ES": { "<feature>Detail": { "sections": { "<xxx>": "Elementos Relacionados" } } },
 }
 ```
 
@@ -1763,6 +1946,11 @@ export default function <Feature>DetailPage() {
   const clearTitle = useBreadcrumbStore((s) => s.clearTitle)
 
   useEffect(() => {
+    // Identifique o campo primário não-nulo do recurso e use-o como breadcrumb.
+    // - Se `name` nunca é null: setTitle(data.name)
+    // - Se `name` é string | null e existe um campo obrigatório alternativo (ex: acronym, code, ip):
+    //   setTitle(data.acronym)
+    // - Se não há alternativa: setTitle(data.name ?? String(data.id))
     if (data) setTitle(data.name)
     return () => clearTitle()
   }, [data, setTitle, clearTitle])
@@ -1778,7 +1966,9 @@ export default function <Feature>DetailPage() {
   if (error || !data) {
     return (
       <div className="flex flex-col items-center gap-4 py-16">
-        <span className="text-sm text-destructive">{error ?? t('common.errorMessage')}</span>
+        {/* Nunca renderize `error` diretamente — o valor é um sentinel interno do hook,
+            não uma mensagem para o usuário. Use sempre a chave i18n. */}
+        <span className="text-sm text-destructive">{t('common.errorMessage')}</span>
         <Button variant="ghost" size="sm" onClick={() => navigate('/<rota>')}>
           {t('<feature>Detail.backToList')}
         </Button>
@@ -1814,53 +2004,6 @@ export default function <Feature>DetailPage() {
 
 ---
 
-### Arquivo 14 — `__mocks__/use<Feature>Mock.ts`
-
-```ts
-// src/modules/<feature>/hooks/__mocks__/use<Feature>Mock.ts
-import type { <Feature>Row } from '../../types/<feature>.type'
-import type { FetchResponse, ListingFilter } from '@/shared/hooks/useListing'
-
-const baseMock: <Feature>Row = {
-  id: 1,
-  name: 'Registro de Exemplo',
-  createdAt: '01/01/2026',
-}
-
-let allMocks: <Feature>Row[] = Array.from({ length: 20 }).map((_, i) => ({
-  ...baseMock,
-  id: i + 1,
-  name: `Registro ${i + 1}`,
-}))
-
-export const fetch<Feature>sMock = async (
-  filter: ListingFilter
-): Promise<FetchResponse<<Feature>Row>> => {
-  await new Promise((resolve) => setTimeout(resolve, 600))
-  const page = filter.page ?? 1
-  const limit = filter.limit ?? 10
-  const search = (filter.search ?? '').toLowerCase()
-  const filtered = allMocks.filter((item) => item.name.toLowerCase().includes(search))
-  const paged = filtered.slice((page - 1) * limit, page * limit)
-  return {
-    data: paged,
-    meta: {
-      currentPage: page,
-      totalPages: Math.ceil(filtered.length / limit),
-      totalItems: filtered.length,
-      itemsPerPage: limit,
-    },
-  }
-}
-
-export const delete<Feature>Mock = async (id: number): Promise<void> => {
-  await new Promise((resolve) => setTimeout(resolve, 400))
-  allMocks = allMocks.filter((item) => item.id !== id)
-}
-```
-
----
-
 ### Checklist de entrega de um novo módulo
 
 Antes de abrir PR, confirme:
@@ -1872,12 +2015,15 @@ Antes de abrir PR, confirme:
 - [ ] `hooks/use<Feature>Create.ts` — abertura/fechamento de form + submit
 - [ ] `hooks/use<Feature>Edit.ts` — abertura com `editTarget` + submit
 - [ ] `hooks/use<Feature>Detail.ts` — fetch por ID com `AbortController`
-- [ ] `hooks/use<Feature>FormOptions.ts` — opções de select com `AbortController`
-- [ ] `hooks/__mocks__/use<Feature>Mock.ts` — dados de mock para desenvolvimento offline
+- [ ] `hooks/use<Feature>FormOptions.ts` — opções de select com `AbortController` _(omitir se o módulo não tem selects dependentes)_
 - [ ] `components/<Feature>CreateForm.tsx` — RHF + Zod, `id` prop para `FormDialog`
 - [ ] `components/<Feature>EditForm.tsx` — `initialData` prop, `defaultValues` preenchidos
 - [ ] `containers/<Feature>MainContainer.tsx` — sem estado, recebe `data` por prop
+- [ ] `containers/<Feature>Related<Xxx>Container.tsx` _(opcional)_ — para relações has-many no detalhe
 - [ ] `<Feature>ListingPage.tsx` — orquestra hooks, não contém lógica de negócio
 - [ ] `<Feature>DetailPage.tsx` — chama `useBreadcrumbStore.setTitle` no `useEffect`
 - [ ] Rota registrada em `src/core/router/index.tsx`
-- [ ] JSON de traduções criado e importado em `src/core/i18n/index.ts`
+- [ ] `src/mock/languages/<kebab>/<kebab>-listing.json` — chaves de listagem e formulários criadas
+- [ ] `src/mock/languages/<kebab>/<kebab>-detail.json` — chaves de detalhe criadas
+- [ ] Ambos importados e spreados em `src/core/i18n/index.ts`
+- [ ] Chave `menu.<feature>` adicionada em `src/mock/languages/menu/menu.json` (pt-BR, en-US, es-ES)
